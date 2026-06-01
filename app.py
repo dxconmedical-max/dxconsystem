@@ -24,7 +24,6 @@ def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # 1. Tai khoan doi tac
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS accounts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,7 +34,6 @@ def init_db():
         )
     ''')
     
-    # 2. Hop dong B2B
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS contracts (
             id TEXT PRIMARY KEY,
@@ -49,7 +47,6 @@ def init_db():
         )
     ''')
     
-    # 3. CRM Benh nhan vang lai
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS crm_patients (
             id TEXT PRIMARY KEY,
@@ -62,7 +59,6 @@ def init_db():
         )
     ''')
     
-    # 4. IoT Dieu phoi van chuyen
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS iot_logistics (
             trip_id TEXT PRIMARY KEY,
@@ -74,7 +70,6 @@ def init_db():
         )
     ''')
     
-    # 5. Lich trinh Thu mau B2B Co dinh
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS b2b_fixed_schedules (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -86,7 +81,6 @@ def init_db():
         )
     ''')
     
-    # 6. Danh muc xet nghiem
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS tests_catalog (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -105,7 +99,6 @@ def init_db():
 
 init_db()
 
-# ================= GIAO DIEN PORTAL KHACH VANG LAI =================
 @app.route('/')
 def guest_portal():
     conn = get_db_connection()
@@ -130,7 +123,7 @@ def guest_book_appointment():
         address = "Khách đến trực tiếp phòng Lab"
         crm_address_text = f"🏥 Đến trực tiếp: {lab_facility}"
         logistics_status = "● Đơn hẹn tại phòng Lab"
-        raw_msg = f"[LỊCH HẸN TẠI LAB]\nKhách hàng: {name}\nSĐT: {phone}\nĐịa điểm: {lab_facility}\nGói XN: {test_name}\n-> Tài xế/Lab chuẩn bị tiếp đón mẫu."
+        raw_msg = f"[LỊCH HẸN TẠI LAB]\nKhách hàng: {name}\nSĐT: {phone}\nĐịa điểm: {lab_facility}\nGói XN: {test_name}"
 
     if name and phone:
         new_bn_id = f"BN_{datetime.now().strftime('%M%S')}"
@@ -149,12 +142,9 @@ def guest_book_appointment():
         ''', (trip_id, "Tài xế Trực ban", "0976791449", "001HCM010626", logistics_status, encoded_msg))
         
         conn.commit()
-        tests = conn.execute("SELECT * FROM tests_catalog").fetchall()
         conn.close()
-        return render_template('index.html', tests=tests, success_msg="🎉 Đăng ký lịch hẹn thành công! Đơn hàng phát sinh đã được đẩy sang danh sách điều phối xe của tài xế.")
     return redirect(url_for('guest_portal'))
 
-# ================= GIAO DIEN TRANG QUAN TRI ADMIN =================
 @app.route('/admin')
 def admin_panel():
     conn = get_db_connection()
@@ -189,16 +179,71 @@ def add_fixed_schedule():
         conn.close()
     return redirect(url_for('admin_panel'))
 
-@app.route('/api/schedule/delete/<int:schedule_id>', methods=['POST'])
-def delete_schedule(schedule_id):
-    conn = get_db_connection()
-    conn.execute("DELETE FROM b2b_fixed_schedules WHERE id = ?", (schedule_id,))
-    conn.commit()
-    conn.close()
-    return redirect(url_for('admin_panel'))
-
 @app.route('/api/contract/add', methods=['POST'])
 def add_contract():
     hd_id = request.form.get('hd_id')
     partner_name = request.form.get('partner_name')
-    volume = request.form.get('volume
+    volume = request.form.get('volume', 0)
+    discount = request.form.get('discount', 0.0)
+    start_date = request.form.get('start_date')
+    end_date = request.form.get('end_date')
+    status = request.form.get('status', 'Đang hoạt động')
+    
+    file_name = None
+    if 'contract_file' in request.files:
+        file = request.files['contract_file']
+        if file.filename != '':
+            ext = os.path.splitext(file.filename)[1]
+            file_name = f"{hd_id}{ext}"
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
+
+    if hd_id and partner_name:
+        v_val = int(volume) if volume else 0
+        d_val = float(discount) if discount else 0.0
+        conn = get_db_connection()
+        if file_name:
+            conn.execute('''
+                INSERT OR REPLACE INTO contracts (id, partner_name, volume, discount, start_date, end_date, file_path, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (hd_id, partner_name, v_val, d_val, start_date, end_date, file_name, status))
+        else:
+            conn.execute('''
+                INSERT OR REPLACE INTO contracts (id, partner_name, volume, discount, start_date, end_date, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (hd_id, partner_name, v_val, d_val, start_date, end_date, status))
+        conn.commit()
+        conn.close()
+    return redirect(url_for('admin_panel'))
+
+@app.route('/api/account/add', methods=['POST'])
+def add_account():
+    username = request.form.get('username')
+    partner = request.form.get('partner')
+    role = request.form.get('role')
+    if username:
+        try:
+            conn = get_db_connection()
+            conn.execute("INSERT INTO accounts (username, partner, role) VALUES (?, ?, ?)", (username, partner, role))
+            conn.commit()
+            conn.close()
+        except sqlite3.IntegrityError: 
+            pass
+    return redirect(url_for('admin_panel'))
+
+@app.route('/api/tests/add', methods=['POST'])
+def add_single_test():
+    name = request.form.get('name')
+    if name:
+        price_val = int(request.form.get('price', 0) or 0)
+        conn = get_db_connection()
+        conn.execute('''
+            INSERT OR REPLACE INTO tests_catalog (name, type, tube_type, storage, price, function, eta, lab)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (name, request.form.get('type'), request.form.get('tube_type'), request.form.get('storage'),
+              price_val, request.form.get('function'), request.form.get('eta'), request.form.get('lab')))
+        conn.commit()
+        conn.close()
+    return redirect(url_for('admin_panel'))
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)

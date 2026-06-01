@@ -3,123 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DXCON - Quản Trị Hệ Thống</title>
+    <title>DXCON - Hệ Thống Điều Hành Admin Master</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
 
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-warning" href="/admin">🎛️ DXCON MASTER DASHBOARD</a>
+            <a href="/logout" class="btn btn-outline-danger btn-sm fw-bold">🔒 Đăng Xuất</a>
+        </div>
+    </nav>
+
     <div class="container my-5">
-        <h2 class="fw-bold text-dark mb-4">TRUNG TÂM ĐIỀU HÀNH DXCON MASTER</h2>
-
-        <div class="card p-4 shadow-sm bg-white mb-5">
-            <h4 class="text-success fw-bold mb-3">🚚 Điều Phối Tài Xế Trực Ca Theo Lịch Trình</h4>
-            <table class="table table-hover align-middle">
-                <thead class="table-success">
-                    <tr>
-                        <th>Mã Chuyến</th>
-                        <th>Mã SID Người Bệnh</th>
-                        <th>Tài Xế Hiện Tại</th>
-                        <th>Lựa Chọn Thay Đổi Tài Xế Hàng Ngày</th>
-                        <th>Trạng Thái Chuyến</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for log in iot_logistics %}
-                    <tr>
-                        <td><b>{{ log.trip_id }}</b></td>
-                        <td class="text-primary fw-bold">{{ log.sid }}</td>
-                        <td><span class="badge bg-dark">{{ log.driver_name }}</span></td>
-                        <td>
-                            <form action="/api/logistics/update_driver" method="POST" class="d-flex gap-2">
-                                <input type="hidden" name="trip_id" value="{{ log.trip_id }}">
-                                <select class="form-select form-select-sm" name="driver_name" required>
-                                    <option value="">-- Chọn tài xế trống lịch --</option>
-                                    {% for d in drivers %}
-                                    <option value="{{ d.username }}">{{ d.username }}</option>
-                                    {% endfor %}
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-primary">Chỉ Định</button>
-                            </form>
-                        </td>
-                        <td><span class="badge bg-info text-dark">{{ log.status }}</span></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="card p-4 shadow-sm bg-white mb-5">
-            <h4 class="text-info fw-bold mb-3">⏱️ Thiết Lập Tuyến Thu Mẫu B2B Cố Định</h4>
-            <form action="/api/schedule/add" method="POST" class="row g-2 mb-3">
-                <div class="col-md-4"><input type="text" class="form-control" name="partner_name" placeholder="Tên Bệnh viện / Phòng khám" required></div>
-                <div class="col-md-3"><input type="time" class="form-control" name="pickup_time" required></div>
-                <div class="col-md-3">
-                    <select class="form-select" name="assigned_driver">
-                        <option value="Chưa chỉ định">-- Chọn tài xế chạy tuyến --</option>
-                        {% for d in drivers %}
-                        <option value="{{ d.username }}">{{ d.username }}</option>
-                        {% endfor %}
-                    </select>
+        
+        <div class="row g-3 mb-5 text-center">
+            <div class="col-md-6">
+                <div class="card p-3 bg-primary text-white shadow-sm border-0">
+                    <h5>📊 TỔNG SỐ LƯỢNG BỆNH NHÂN HỆ THỐNG (CRM)</h5>
+                    <h2 class="fw-bold">{{ stats.total_patients if stats.total_patients else 0 }} Người</h2>
                 </div>
-                <div class="col-md-2"><button type="submit" class="btn btn-info text-white w-100 fw-bold">Thêm Tuyến</button></div>
-            </form>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3 bg-success text-white shadow-sm border-0">
+                    <h5>💰 TỔNG SỐ TIỀN PHÁT SINH DỊCH VỤ XÉT NGHIỆM</h5>
+                    <h2 class="fw-bold">{{ stats.revenue if stats.revenue else 0 }} VNĐ</h2>
+                </div>
+            </div>
         </div>
 
-        <div class="card p-4 shadow-sm bg-white mb-5">
-            <h4 class="text-warning fw-bold mb-3">📜 Quản Lý Hợp Đồng Đối Tác B2B</h4>
-            <form action="/api/contract/add" method="POST" class="row g-2 mb-3">
-                <div class="col-md-3"><input type="text" class="form-control" name="hd_id" placeholder="Mã HĐ (Ví dụ: HD_01)" required></div>
-                <div class="col-md-4"><input type="text" class="form-control" name="partner_name" placeholder="Tên Đơn Vị Đối Tác" required></div>
-                <div class="col-md-3"><input type="number" class="form-control" name="discount" placeholder="% Chiết khấu"></div>
-                <div class="col-md-2"><button type="submit" class="btn btn-warning w-100 fw-bold">Lưu HĐ</button></div>
-            </form>
-            <table class="table table-sm">
-                <thead>
-                    <tr><th>Mã HĐ</th><th>Tên Đối Tác</th><th>Chiết Khấu</th><th>Trạng Thái</th></tr>
-                </thead>
-                <tbody>
-                    {% for c in contracts %}
-                    <tr><td>{{ c.id }}</td><td>{{ c.partner_name }}</td><td>{{ c.discount }}%</td><td><span class="badge bg-success">Đang hoạt động</span></td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="card p-4 shadow-sm bg-white mb-5">
-            <h4 class="text-danger fw-bold mb-3">🧪 Quản Lý Danh Mục Gói Xét Nghiệm</h4>
-            <form action="/api/tests/add" method="POST" class="row g-2 mb-3">
-                <div class="col-md-5"><input type="text" class="form-control" name="name" placeholder="Tên gói xét nghiệm" required></div>
-                <div class="col-md-3"><input type="number" class="form-control" name="price" placeholder="Giá tiền (VNĐ)" required></div>
-                <div class="col-md-2"><input type="text" class="form-control" name="eta" placeholder="Thời gian có KQ" value="2 giờ"></div>
-                <div class="col-md-2"><button type="submit" class="btn btn-danger w-100 fw-bold">Thêm Gói</button></div>
-            </form>
-        </div>
-
-        <div class="card p-4 shadow-sm bg-white">
-            <h4 class="text-secondary fw-bold mb-3">🔑 Cấp Tài Khoản & Phân Quyền Thành Viên</h4>
-            <form action="/api/account/add" method="POST" class="row g-2 mb-3">
-                <div class="col-md-4"><input type="text" class="form-control" name="username" placeholder="Tên đăng nhập" required></div>
-                <div class="col-md-4"><input type="text" class="form-control" name="partner" placeholder="Thuộc đơn vị công tác" required></div>
+        <div class="card p-4 shadow-sm bg-white mb-5 border-start border-primary border-4">
+            <h4 class="text-primary fw-bold mb-3">3.1 Quản Lý Phân Quyền & Cấp Tài Khoản Người Dùng</h4>
+            <form action="/api/admin/account/add" method="POST" class="row g-2 mb-3">
+                <div class="col-md-3"><input type="text" class="form-control" name="username" placeholder="Tên đăng nhập" required></div>
+                <div class="col-md-3"><input type="password" class="form-control" name="password" placeholder="Mật khẩu bảo mật" required></div>
+                <div class="col-md-3"><input type="text" class="form-control" name="partner" placeholder="Cơ sở / Phòng khám quản lý" required></div>
                 <div class="col-md-2">
                     <select class="form-select" name="role">
+                        <option value="Bác sĩ">Bác sĩ</option>
                         <option value="Tài xế Logistics">Tài xế Logistics</option>
-                        <option value="Bác sĩ">Bác sĩ chỉ định</option>
-                        <option value="Phòng Xét nghiệm liên kết">Phòng Xét nghiệm liên kết</option>
-                        <option value="Phòng khám liên kết">Phòng khám liên kết</option>
-                        <option value="Admin">Quản trị viên tối cao</option>
+                        <option value="Admin">Admin</option>
                     </select>
                 </div>
-                <div class="col-md-2"><button type="submit" class="btn btn-dark w-100 fw-bold">Cấp Tài Khoản</button></div>
+                <div class="col-md-1"><button type="submit" class="btn btn-primary w-100 fw-bold">Cấp</button></div>
             </form>
-            <table class="table table-sm">
-                <thead><tr><th>Tên Đăng Nhập</th><th>Đơn Vị</th><th>Quyền Truy Cập</th></tr></thead>
+            <table class="table table-sm align-middle">
+                <thead><tr><th>Username</th><th>Đơn vị uỷ quyền</th><th>Vai trò nhóm</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
                 <tbody>
                     {% for acc in accounts %}
-                    <tr><td><b>{{ acc.username }}</b></td><td>{{ acc.partner }}</td><td><span class="badge bg-primary">{{ acc.role }}</span></td></tr>
+                    <tr>
+                        <td><b>{{ acc.username }}</b></td>
+                        <td>{{ acc.partner }}</td>
+                        <td><span class="badge bg-primary">{{ acc.role }}</span></td>
+                        <td><span class="badge bg-success">{{ acc.status }}</span></td>
+                        <td>
+                            {% if acc.username != 'admin' %}
+                            <a href="/api/admin/account/delete/{{ acc.id }}" class="btn btn-sm btn-outline-danger py-0" onclick="return confirm('Xóa tài khoản này?')">Xóa</a>
+                            {% endif %}
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
+        <div class="card p-4 shadow-sm bg-white mb-5 border-start border-success border-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="text-success fw-bold m-0">3.2 Hệ Thống CRM Quản Lý Dữ Liệu Bệnh Nhân Tích Hợp AI</h4>
+                <form action="/admin" method="GET" class="d-flex gap-2">
+                    <input type="text" class="form-control form-control-sm" name="filter_clinic" value="{{ filter_clinic }}" placeholder="Nhập tên phòng khám để lọc...">
+                    <button type="submit" class="btn btn-sm btn-success">Filter</button>
+                    <a href="/admin" class="btn btn-sm btn-secondary">Reset</a>
+                </form>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-sm align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã SID</th><th>Tên bệnh nhân</th><th>Số điện thoại</th><th>Cơ sở sở hữu</th><th>Số tiền gói</th><th>Khuyến nghị chẩn đoán từ AI</th><th>Xóa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in crm_patients %}
+                        <tr>
+                            <td class="fw-bold text-danger">{{ p.sid }}</td>
+                            <td><b>{{ p.name }}</b></td>
+                            <td>{{ p.phone }}</td>
+                            <td><span class="badge bg-dark">{{ p.clinic_owner }}</span></td>
+                            <td class="text-success fw-bold">{{ p.total_amount }} đ</td>
+                            <td><small class="text-primary fw-bold">{{ p.ai_suggested }}</small></td>
+                            <td><a href="/api/admin/patient/delete/{{ p.sid }}" class="btn btn-sm btn-danger py-0 px-1" onclick="return confirm('Xóa bệnh nhân?')">Xóa</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card p-4 shadow-sm bg-white mb-5 border-start border-warning border-4">
+            <h4 class="text-warning fw-bold mb-3">3.3 Quản Lý Hồ Sơ Ký Kết Với Các Đối Tác B2B</h4>
+            <form action="/api/admin/contract/add" method="POST" enctype="multipart/form-data" class="row g-2 mb-4">
+                <div class="col-md-2"><input type="text" class="form-control" name="hd_id" placeholder="Mã HĐ" required></div>
+                <div class="col-md-3"><input type="text" class="form-control" name="partner_name" placeholder="Tên đơn vị đối tác" required></div>
+                <div class="col-md-2"><input type="number" class="form-control" name="discount" placeholder="% Chiết khấu"></div>
+                <div class="col-md-2">
+                    <label class="form-label m-0 fw-bold" style="font-size:11px;">Upload Hợp đồng</label>
+                    <input type="file" class="form-control form-control-sm" name="contract_file">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label m-0 fw-bold" style="font-size:11px;">Tệp test xét nghiệm</label>
+                    <input type="file" class="form-control form-control-sm" name="test_list_file">
+                </div>
+                <div class="col-md-1 d-flex align-items-end"><button type="submit" class="btn btn-warning w-100 fw-bold">Lưu</button></div>
+            </form>
+            <table class="table table-sm">
+                <thead><tr><th>Mã HĐ</th><th>Đơn vị đối tác</th><th>Mức chiết khấu</th><th>File hợp đồng gốc</th><th>File test đính kèm</th><th>Xóa</th></tr></thead>
+                <tbody>
+                    {% for c in contracts %}
+                    <tr>
+                        <td><code>{{ c.id }}</code></td>
+                        <td><b>{{ c.partner_name }}</b></td>
+                        <td class="text-danger fw-bold">{{ c.discount }}%</td>
+                        <td>{% if c.contract_file %}<a href="/uploads/{{ c.contract_file }}" target="_blank">📄 Xem File HĐ</a>{% else %}Chưa có{% endif %}</td>
+                        <td>{% if c.test_list_file %}<a href="/uploads/{{ c.test_list_file }}" target="_blank">🔬 Xem File Test</a>{% else %}Chưa có{% endif %}</td>
+                        <td><a href="/api/admin/contract/delete/{{ c.id }}" class="btn btn-sm btn-outline-danger py-0" onclick="return confirm('Xóa hợp đồng này?')">Xóa</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card p-4 shadow-sm bg-white mb-5 border-start border-danger border-4">
+            <h4 class="text-danger fw-bold mb-3">3.4 Quản Lý Danh Mục Gói Xét Nghiệm & Upload Hàng Loạt</h4>
+            <div class="row g-3 mb-4 p-3 bg-light rounded border">
+                <div class="col-md-7">
+                    <h5>Thêm gói thủ công cá nhân</h5>
+                    <form action="/api/admin/tests/add" method="POST" class="row g-2">
+                        <div class="col-md-3"><input type="text" class="form-control form-control-sm" name="code" placeholder="Mã XN" required></div>
+                        <div class="col-md-5"><input type="text" class="form-control form-control-sm" name="name" placeholder="Tên xét nghiệm" required></div>
+                        <div class="col-md-4"><input type="text" class="form-control form-control-sm" name="category" placeholder="Loại xét nghiệm"></div>
+                        <div class="col-md-3"><input type="text" class="form-control form-control-sm" name="tube_type" placeholder="Loại ống mẫu"></div>
+                        <div class="col-md-3"><input type="text" class="form-control form-control-sm" name="duration" placeholder="Thời gian XN" value="2 giờ"></div>
+                        <div class="col-md-3"><input type="number" class="form-control form-control-sm" name="price" placeholder="Giá tiền"></div>
+                        <div class="col-md-3"><input type="text" class="form-control form-control-sm" name="function_desc" placeholder="Chức năng"></div>
+                        <div class="col-12 text-end"><button type="submit" class="btn btn-sm btn-danger fw-bold">Lưu gói xét nghiệm</button></div>
+                    </form>
+                </div>
+                <div class="col-md-5 border-start">
+                    <h5>Upload hàng loạt theo form mẫu (.csv/.txt)</h5>
+                    <p style="font-size:12px;" class="text-muted">Cấu trúc dòng mẫu trong file: <br><code>Mã, Tên, Loại XN, Loại Ống, Thời Gian, Giá Tiền, Chức năng</code></p>
+                    <form action="/api/admin/tests/upload_bulk" method="POST" enctype="multipart/form-data" class="d-flex gap-2">
+                        <input type="file" class="form-control form-control-sm" name="bulk_file" required>
+                        <button type="submit" class="btn btn-sm btn-dark fw-bold">UPLOAD</button>
+                    </form>
+                </div>
+            </div>
+            <table class="table table-sm">
+                <thead><tr><th>Mã XN</th><th>Tên gói</th><th>Phân hệ</th><th>Loại ống mẫu</th><th>Thời gian</th><th>Giá cả</th><th>Chức năng</th><th>Xóa</th></tr></thead>
+                <tbody>
+                    {% for t in tests_catalog %}
+                    <tr>
+                        <td><code>{{ t.code }}</code></td>
+                        <td><b>{{ t.name }}</b></td>
+                        <td>{{ t.category }}</td>
+                        <td><span class="badge bg-secondary">{{ t.tube_type }}</span></td>
+                        <td>{{ t.duration }}</td>
+                        <td class="text-danger fw-bold">{{ t.price }} đ</td>
+                        <td><small>{{ t.function_desc }}</small></td>
+                        <td><a href="/api/admin/tests/delete/{{ t.id }}" class="btn btn-sm btn-outline-danger py-0" onclick="return confirm('Xóa gói?')">Xóa</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card p-4 shadow-sm bg-white border-start border-info border-4">
+            <h4 class="text-info fw-bold mb-3">3.5 Điều Phối Tài Xế Logistics & Giám Sát Thiết Bị Mẫu IoT</h4>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered table-sm align-middle">
+                    <thead class="table-info">
+                        <tr>
+                            <th>Mã Chuyến</th><th>Bệnh Nhân (SID)</th><th>Địa chỉ thu nhận mẫu</th><th>Giờ hẹn lấy</th><th>Tài xế nhận ca</th><th>Nhiệt độ IoT</th><th>Pin Box</th><th>Chỉ định tài xế</th><th>Lệnh Zalo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in iot_logistics %}
+                        <tr>
+                            <td><b>{{ log.trip_id }}</b></td>
+                            <td>{{ log.name }} (<small class="text-danger fw-bold">{{ log.sid }}</small>)</td>
+                            <td><small>{{ log.address }}</small></td>
+                            <td><span class="badge bg-danger">{{ log.pickup_time_est }}</span></td>
+                            <td><span class="badge bg-dark">{{ log.driver_name }}</span></td>
+                            <td class="text-danger fw-bold">🌡️ {{ log.iot_temp }}</td>
+                            <td class="text-success fw-bold">🔋 {{ log.iot_battery }}</td>
+                            <td>
+                                <form action="/api/admin/logistics/dispatch" method="POST" class="d-flex gap-1">
+                                    <input type="hidden" name="trip_id" value="{{ log.trip_id }}">
+                                    <select class="form-select form-select-sm" name="driver_name" required style="font-size:12px;">
+                                        <option value="">-- Chọn tài xế --</option>
+                                        {% for d in drivers %}
+                                        <option value="{{ d.username }}">{{ d.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-info text-white py-0">Giao</button>
+                                </form>
+                            </td>
+                            <td>
+                                <a href="https://zalo.me/share?text={{ log.zalo_msg }}" target="_blank" class="btn btn-sm btn-success text-white fw-bold py-0" style="font-size:11px;">
+                                    💬 Đẩy Zalo Tài Xế
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
 </body>

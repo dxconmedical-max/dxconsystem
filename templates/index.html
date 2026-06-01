@@ -10,130 +10,111 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="/">🏥 DXCON MEDICAL</a>
+            <a class="navbar-brand fw-bold" href="/">🏥 DXCON MEDICAL PORTAL</a>
             <div>
-                <a href="/doctor" class="btn btn-light btn-sm fw-bold me-2">Phân Hệ Bác Sĩ</a>
-                <a href="/admin" class="btn btn-dark btn-sm fw-bold">Hệ Thống Admin</a>
+                <a href="/login" class="btn btn-light btn-sm fw-bold">Hệ Thống Phân Quyền Y Tế (Doctor/Admin) →</a>
             </div>
         </div>
     </nav>
 
     <div class="container my-5">
         <div class="card p-4 shadow-sm mb-5 border-start border-primary border-4 bg-white">
-            <h4 class="fw-bold text-primary mb-3">🔍 Tra Cứu Kết Quả & Toa Thuốc (Bằng Mã SID)</h4>
+            <h4 class="fw-bold text-primary mb-3">🔍 Tra Cứu Toa Thuốc & Lời Khuyên Y Khoa</h4>
             <form action="/" method="GET" class="row g-2">
                 <div class="col-md-9">
-                    <input type="text" class="form-control" name="search_sid" value="{{ search_sid }}" placeholder="Nhập mã định danh cá nhân SID (Ví dụ: SID0601...)" required>
+                    <input type="text" class="form-control" name="search_sid" value="{{ search_sid }}" placeholder="Nhập chính xác mã cá nhân SID hoặc họ và tên để tra cứu dịch vụ..." required>
                 </div>
                 <div class="col-md-3">
-                    <button type="submit" class="btn btn-success w-100 fw-bold">TRA CỨU</button>
+                    <button type="submit" class="btn btn-success w-100 fw-bold">XÁC THỰC TRA CỨU</button>
                 </div>
             </form>
 
             {% if patient_info %}
             <div class="mt-4 p-3 bg-light rounded border">
-                <h5 class="text-success fw-bold">Kết quả định danh cho: {{ patient_info.sid }}</h5>
+                <h5 class="text-success fw-bold">Thông tin hồ sơ: {{ patient_info.sid }}</h5>
                 <div class="row g-3 mt-1">
-                    <div class="col-md-4"><b>Bệnh nhân:</b> {{ patient_info.name }}</div>
-                    <div class="col-md-4"><b>Số điện thoại:</b> {{ patient_info.phone }}</div>
-                    <div class="col-md-4"><b>Trạng thái mẫu:</b> <span class="badge bg-warning text-dark">{{ patient_info.last_interaction }}</span></div>
-                    <div class="col-md-12"><b>Địa chỉ/Vị trí:</b> {{ patient_info.address }}</div>
+                    <div class="col-md-3"><b>Họ tên bệnh nhân:</b> {{ patient_info.name }}</div>
+                    <div class="col-md-3"><b>Số điện thoại:</b> {{ patient_info.phone }}</div>
+                    <div class="col-md-3"><b>Cơ sở chỉ định:</b> <span class="badge bg-dark">{{ patient_info.clinic_owner }}</span></div>
+                    <div class="col-md-3"><b>Hẹn giờ thu mẫu:</b> <span class="badge bg-danger">{{ patient_info.pickup_time_est }}</span></div>
+                    <div class="col-md-12"><b>Địa điểm thực hiện thực tế:</b> {{ patient_info.address }}</div>
                 </div>
                 <hr>
                 <div class="row g-3">
-                    <div class="col-md-6"><b>Lời khuyên từ Bác sĩ:</b> <p class="text-primary fw-bold">{{ patient_info.doctor_notes if patient_info.doctor_notes else 'Hệ thống đang chạy xét nghiệm...' }}</p></div>
-                    <div class="col-md-3"><b>Toa thuốc của bạn:</b> <p class="text-danger fw-bold">{{ patient_info.prescription_path if patient_info.prescription_path else 'Chưa có chỉ định thuốc' }}</p></div>
-                    <div class="col-md-3"><b>📅 Hẹn ngày tái khám:</b> <p class="text-danger fw-bold">{{ patient_info.revisit_date if patient_info.revisit_date else 'Chưa có lịch hẹn' }}</p></div>
+                    <div class="col-md-6"><b>Lời khuyên chuyên khoa:</b> <p class="text-primary fw-bold">{{ patient_info.doctor_notes if patient_info.doctor_notes else 'Mẫu đang được điều phối vận chuyển bằng thiết bị kiểm soát nhiệt độ IoT...' }}</p></div>
+                    <div class="col-md-3"><b>Đơn thuốc đính kèm:</b> 
+                        {% if patient_info.prescription_path %}
+                        <p><a href="/uploads/{{ patient_info.prescription_path }}" target="_blank" class="btn btn-sm btn-outline-danger fw-bold">👁️ Xem Đơn Thuốc File Gốc</a></p>
+                        {% else %}
+                        <p class="text-muted">Chưa có tệp đính kèm</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-3"><b>📅 Lịch hẹn tái khám:</b> <p class="text-danger fw-bold">{{ patient_info.revisit_date if patient_info.revisit_date else 'Theo dõi thêm tại nhà' }}</p></div>
                 </div>
             </div>
-            {% elif search_sid %}
-            <div class="alert alert-danger mt-3 mb-0">Mã tra cứu SID không đúng hoặc chưa được đồng bộ hệ thống!</div>
             {% endif %}
         </div>
 
         <div class="row g-4">
             <div class="col-md-6">
-                <div class="card p-4 shadow-sm bg-white">
-                    <h4 class="fw-bold text-primary mb-4">Đăng Ký Đặt Lịch Xét Nghiệm</h4>
+                <div class="card p-4 shadow-sm bg-white border-top border-primary border-4">
+                    <h4 class="fw-bold text-primary mb-4">Đăng Ký Đặt Lịch Lấy Mẫu Xét Nghiệm</h4>
                     <form action="/api/guest/book" method="POST">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Họ và tên bệnh nhân</label>
-                            <input type="text" class="form-control" name="guest_name" placeholder="Nguyễn Văn A" required>
+                            <input type="text" class="form-control" name="guest_name" required placeholder="Ví dụ: Nguyễn Văn A">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Số điện thoại</label>
-                            <input type="tel" class="form-control" name="guest_phone" placeholder="0901234567" required>
+                            <label class="form-label fw-bold">Số điện thoại liên hệ</label>
+                            <input type="tel" class="form-control" name="guest_phone" required placeholder="Ví dụ: 0901234567">
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Hình thức thực hiện</label>
-                            <select class="form-select" name="service_type" id="serviceType" onchange="toggleAddress()">
-                                <option value="at_lab">Đến trực tiếp phòng Lab xử lý mẫu</option>
-                                <option value="at_home">💡 Điều phối nhân viên đến lấy mẫu tại nhà</option>
-                            </select>
-                        </div>
-                        <div class="mb-3" id="addressBox" style="display:none;">
-                            <label class="form-label fw-bold text-danger">Địa chỉ / Vị trí lấy mẫu chi tiết</label>
-                            <input type="text" class="form-control border-danger" id="guest_address" name="guest_address" placeholder="Số nhà, tên đường, phường, quận/huyện...">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Gói xét nghiệm</label>
-                            <select class="form-select" name="chosen_test">
-                                {% for test in tests %}
-                                <option value="{{ test.name }}">{{ test.name }}</option>
-                                {% endfor %}
-                            </select>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Thời gian mong muốn</label>
+                                <input type="time" class="form-control" name="pickup_time_est" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Lựa chọn gói xét nghiệm</label>
+                                <select class="form-select" name="chosen_test">
+                                    {% for test in tests %}
+                                    <option value="{{ test.id }}">{{ test.name }} ({{ test.price }} đ)</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Cơ sở xử lý</label>
-                            <select class="form-select" name="chosen_lab">
-                                <option value="Trung tâm Xét nghiệm Quận 1">Trung tâm Xét nghiệm Quận 1</option>
-                                <option value="Phòng Lab liên kết DX-Phú Nhuận">Phòng Lab liên kết DX-Phú Nhuận</option>
-                            </select>
+                            <label class="form-label fw-bold text-danger">Địa chỉ chính xác phục vụ tài xế định vị lấy mẫu</label>
+                            <input type="text" class="form-control border-danger" name="guest_address" required placeholder="Số nhà, tên đường, phường/quận...">
                         </div>
-                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2">XÁC NHẬN ĐẶT LỊCH</button>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2">🚀 GỬI YÊU CẦU ĐẶT LỊCH HỆ THỐNG</button>
                     </form>
                 </div>
             </div>
 
             <div class="col-md-6">
                 <div class="card p-4 shadow-sm bg-white">
-                    <h4 class="fw-bold text-success mb-4">Danh Mục Gói Xét Nghiệm</h4>
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Tên dịch vụ</th>
-                                <th>Thời gian</th>
-                                <th>Giá niêm yết</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for test in tests %}
-                            <tr>
-                                <td class="fw-bold">{{ test.name }}</td>
-                                <td><span class="badge bg-info text-dark">{{ test.eta }}</span></td>
-                                <td class="text-danger fw-bold">{{ test.price }} đ</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                    <h4 class="fw-bold text-success mb-4">Bảng Giá Gói Xét Nghiệm Niêm Yết</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr><th>Mã</th><th>Tên dịch vụ</th><th>Thời gian</th><th>Giá niêm yết</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for test in tests %}
+                                <tr>
+                                    <td><code>{{ test.code }}</code></td>
+                                    <td class="fw-bold text-dark">{{ test.name }}</td>
+                                    <td><span class="badge bg-info text-dark">{{ test.duration }}</span></td>
+                                    <td class="text-danger fw-bold">{{ test.price }} đ</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        function toggleAddress() {
-            var type = document.getElementById("serviceType").value;
-            var box = document.getElementById("addressBox");
-            var input = document.getElementById("guest_address");
-            if(type === "at_home") {
-                box.style.display = "block";
-                input.required = true;
-            } else {
-                box.style.display = "none";
-                input.required = false;
-            }
-        }
-    </script>
 </body>
 </html>

@@ -1,239 +1,135 @@
-import os
-import io
-import sqlite3
-import urllib.parse
-from datetime import datetime
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DXCON - Bảng Quản Trị Hệ Thống</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+        .main-content { padding: 30px; }
+        .card-stat { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+    </style>
+</head>
+<body>
 
-app = Flask(__name__)
-DB_FILE = "dxcon_medical.db"
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12 main-content">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold text-dark">TRUNG TÂM ĐIỀU HÀNH DXCON MASTER</h2>
+                <a href="/" class="btn btn-dark fw-bold">← Quay lại Cổng Guest</a>
+            </div>
 
-def get_db_connection():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    return conn
+            <div class="card card-stat p-4 bg-white mb-5">
+                <h4 class="text-success fw-bold mb-3">🚚 Mạng Lưới Vận Chuyển Mẫu IoT (Điều Tài Xế Theo Lịch Trình)</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-success">
+                            <tr>
+                                <th>Mã Chuyến</th>
+                                <th>Mã SID Người Bệnh</th>
+                                <th>Tài Xế Hiện Tại</th>
+                                <th>Thay Đổi Tài Xế Trực Ca</th>
+                                <th>Hộp Bảo Quản</th>
+                                <th>Trạng Thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in iot_logistics %}
+                            <tr>
+                                <td class="fw-bold">{{ log.trip_id }}</td>
+                                <td class="text-primary fw-bold">{{ log.sid }}</td>
+                                <td><span class="badge bg-dark">{{ log.driver_name }}</span></td>
+                                <td>
+                                    <form action="/api/logistics/update_driver" method="POST" class="d-flex gap-2">
+                                        <input type="hidden" name="trip_id" value="{{ log.trip_id }}">
+                                        <select class="form-select form-select-sm" name="driver_name">
+                                            <option value="">-- Chọn tài xế trống lịch --</option>
+                                            {% for d in drivers %}
+                                            <option value="{{ d.username }}">{{ d.username }} ({{ d.partner }})</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-primary">Chỉ Định</button>
+                                    </form>
+                                </td>
+                                <td><code>{{ log.box_code }}</code></td>
+                                <td><span class="badge bg-info text-dark">{{ log.status }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-def init_db():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    # 1. Bảng tài khoản (Mở rộng phân quyền y tế)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS accounts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            partner TEXT,
-            role TEXT,
-            status TEXT DEFAULT 'Đang hoạt động'
-        )
-    ''')
-    
-    # 2. Bảng bệnh nhân & CRM (Bổ sung mã SID, Địa chỉ chi tiết, Toa thuốc, Tái khám)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS crm_patients (
-            sid TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            address TEXT,
-            segment TEXT DEFAULT 'Tiềm năng',
-            last_interaction TEXT,
-            chosen_lab TEXT,
-            doctor_id TEXT,
-            prescription_path TEXT,
-            doctor_notes TEXT,
-            revisit_date TEXT
-        )
-    ''')
-    
-    # 3. Bảng Logistics IoT (Chọn tài xế động)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS iot_logistics (
-            trip_id TEXT PRIMARY KEY,
-            driver_name TEXT NOT NULL,
-            driver_phone TEXT,
-            box_code TEXT,
-            status TEXT DEFAULT 'Đã điều phối xe',
-            sid TEXT,
-            zalo_msg TEXT
-        )
-    ''')
-    
-    # 4. Bảng lịch trình cố định B2B (Chọn tài xế động)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS b2b_fixed_schedules (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            partner_name TEXT NOT NULL,
-            pickup_time TEXT NOT NULL,
-            trips_per_day INTEGER DEFAULT 1,
-            route_note TEXT,
-            assigned_driver TEXT
-        )
-    ''')
-    
-    # 5. Bảng danh mục xét nghiệm công khai
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS tests_catalog (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL,
-            price INTEGER DEFAULT 0,
-            eta TEXT
-        )
-    ''')
-    
-    # Chèn dữ liệu mẫu nếu bảng trống để kiểm thử
-    cursor.execute("SELECT COUNT(*) FROM tests_catalog")
-    if cursor.fetchone()[0] == 0:
-        cursor.execute("INSERT INTO tests_catalog (name, price, eta) VALUES ('Xét nghiệm Công thức máu', 250000, '2 giờ')")
-        cursor.execute("INSERT INTO tests_catalog (name, price, eta) VALUES ('Xét nghiệm Đường huyết (Glucose)', 120000, '1.5 giờ')")
-        cursor.execute("INSERT INTO tests_catalog (name, price, eta) VALUES ('Xét nghiệm Tổng quát DXCON-Max', 1500000, '4 giờ')")
-        
-    conn.commit()
-    conn.close()
+            <div class="card card-stat p-4 bg-white mb-5">
+                <h4 class="text-info fw-bold mb-3">⏱️ Thiết Lập Lịch Thu Mẫu B2B Cố Định</h4>
+                <form action="/api/schedule/add" method="POST" class="row g-3 mb-4">
+                    <div class="col-md-3"><input type="text" class="form-control" name="partner_name" placeholder="Tên Bệnh viện / Phòng khám" required></div>
+                    <div class="col-md-2"><input type="time" class="form-control" name="pickup_time" required></div>
+                    <div class="col-md-2"><input type="number" class="form-control" name="trips_per_day" placeholder="Số chuyến/ngày"></div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="assigned_driver">
+                            <option value="Tài xế Tuyến cố định">-- Chọn Tài xế phụ trách tuyến --</option>
+                            {% for d in drivers %}
+                            <option value="{{ d.username }}">{{ d.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2"><button type="submit" class="btn btn-info text-white w-100 fw-bold">Thêm Tuyến Cố Định</button></div>
+                </form>
+            </div>
 
-init_db()
+            <div class="card card-stat p-4 bg-white mb-5">
+                <h4 class="text-secondary fw-bold mb-3">🔑 Cấp Quyền & Tài Khoản Truy Cập Hệ Thống</h4>
+                <form action="/api/account/add" method="POST" class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" name="username" placeholder="Tên đăng nhập (Email/SĐT)" required>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" name="partner" placeholder="Thuộc Đơn vị / Bệnh viện liên kết" required>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select" name="role">
+                            <option value="Tài xế điều phối">Tài xế Logistics</option>
+                            <option value="Bác sĩ">Bác sĩ chỉ định</option>
+                            <option value="Phòng Xét nghiệm liên kết">Phòng Xét nghiệm liên kết</option>
+                            <option value="Phòng khám liên kết">Phòng khám liên kết</option>
+                            <option value="Admin">Quản trị viên tối cao</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-dark w-100 fw-bold">CẤP NICK HỆ THỐNG</button>
+                    </div>
+                </form>
 
-# --- ROUTES GIAO DIỆN CHÍNH ---
+                <div class="table-responsive mt-4">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Tên Đăng Nhập</th>
+                                <th>Đơn Vị Công Tác</th>
+                                <th>Quyền Truy Cập</th>
+                                <th>Trạng Thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for acc in accounts %}
+                            <tr>
+                                <td class="fw-bold">{{ acc.username }}</td>
+                                <td>{{ acc.partner }}</td>
+                                <td><span class="badge bg-primary">{{ acc.role }}</span></td>
+                                <td><span class="text-success">● Đang hoạt động</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-@app.route('/')
-def guest_portal():
-    conn = get_db_connection()
-    tests = conn.execute("SELECT * FROM tests_catalog").fetchall()
-    
-    # Lấy thông tin tra cứu nếu có tham số truy vấn ?search_sid=...
-    search_sid = request.args.get('search_sid', '').strip()
-    patient_info = None
-    if search_sid:
-        patient_info = conn.execute("SELECT * FROM crm_patients WHERE sid = ?", (search_sid,)).fetchone()
-        
-    conn.close()
-    return render_template('index.html', tests=tests, patient_info=patient_info, search_sid=search_sid)
+        </div>
+    </div>
+</div>
 
-@app.route('/api/guest/book', methods=['POST'])
-def guest_book_appointment():
-    name = request.form.get('guest_name')
-    phone = request.form.get('guest_phone')
-    service_type = request.form.get('service_type')
-    test_name = request.form.get('chosen_test')
-    lab_facility = request.form.get('chosen_lab')
-    address = request.form.get('guest_address', 'Khách đến trực tiếp phòng Lab')
-
-    if name and phone:
-        # Sinh mã SID định danh duy nhất cho bệnh nhân
-        sid = f"SID{datetime.now().strftime('%m%d%H%M%S')}"
-        trip_id = f"TRIP_{datetime.now().strftime('%M%S')}"
-        
-        crm_address_text = f"🛵 Tại nhà: {address}" if service_type == "at_home" else f"🏥 Tại Lab: {lab_facility}"
-        logistics_status = "● Đơn lấy mẫu lẻ tại nhà" if service_type == "at_home" else "● Đơn hẹn tại phòng Lab"
-        
-        raw_msg = f"[ĐƠN ĐẶT LỊCH MỚI]\nMã SID: {sid}\nKhách hàng: {name}\nSĐT: {phone}\nĐịa chỉ: {address}\nGói XN: {test_name}"
-        encoded_msg = urllib.parse.quote(raw_msg)
-        
-        conn = get_db_connection()
-        # Lưu vào CRM
-        conn.execute('''
-            INSERT INTO crm_patients (sid, name, phone, address, last_interaction, chosen_lab)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (sid, name, phone, crm_address_text, f"Đăng ký: {test_name}", lab_facility))
-        
-        # Tạo chuyến vận chuyển mặc định (Tài xế trực ban ban đầu)
-        conn.execute('''
-            INSERT INTO iot_logistics (trip_id, driver_name, driver_phone, box_code, status, sid, zalo_msg)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', (trip_id, "Tài xế Trực ban", "0976791449", "IoT-BOX-01", logistics_status, sid, encoded_msg))
-        
-        conn.commit()
-        conn.close()
-        return redirect(url_for('guest_portal', search_sid=sid))
-    return redirect(url_for('guest_portal'))
-
-# --- REPO QUẢN TRỊ ADMIN PANEL ---
-
-@app.route('/admin')
-def admin_panel():
-    conn = get_db_connection()
-    accounts = conn.execute("SELECT * FROM accounts").fetchall()
-    crm_patients = conn.execute("SELECT * FROM crm_patients").fetchall()
-    iot_logistics = conn.execute("SELECT * FROM iot_logistics").fetchall()
-    fixed_schedules = conn.execute("SELECT * FROM b2b_fixed_schedules").fetchall()
-    
-    # Lấy danh sách tài xế hiện có để phục vụ chọn tài xế động
-    drivers = conn.execute("SELECT * FROM accounts WHERE role = 'Tài xế điều phối'").fetchall()
-    conn.close()
-    return render_template('admin.html', accounts=accounts, crm_patients=crm_patients, 
-                           iot_logistics=iot_logistics, fixed_schedules=fixed_schedules, drivers=drivers)
-
-@app.route('/api/schedule/add', methods=['POST'])
-def add_fixed_schedule():
-    partner_name = request.form.get('partner_name')
-    pickup_time = request.form.get('pickup_time')
-    trips_per_day = request.form.get('trips_per_day', 1)
-    route_note = request.form.get('route_note')
-    assigned_driver = request.form.get('assigned_driver', 'Chưa chỉ định')
-    
-    if partner_name and pickup_time:
-        conn = get_db_connection()
-        conn.execute('''
-            INSERT INTO b2b_fixed_schedules (partner_name, pickup_time, trips_per_day, route_note, assigned_driver)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (partner_name, pickup_time, int(trips_per_day), route_note, assigned_driver))
-        conn.commit()
-        conn.close()
-    return redirect(url_for('admin_panel'))
-
-@app.route('/api/logistics/update_driver', methods=['POST'])
-def update_driver_logistics():
-    trip_id = request.form.get('trip_id')
-    driver_name = request.form.get('driver_name')
-    if trip_id and driver_name:
-        conn = get_db_connection()
-        conn.execute("UPDATE iot_logistics SET driver_name = ?, status = 'Đã cập nhật tài xế tuyến' WHERE trip_id = ?", (driver_name, trip_id))
-        conn.commit()
-        conn.close()
-    return redirect(url_for('admin_panel'))
-
-@app.route('/api/account/add', methods=['POST'])
-def add_account():
-    username = request.form.get('username')
-    partner = request.form.get('partner')
-    role = request.form.get('role')
-    if username:
-        try:
-            conn = get_db_connection()
-            conn.execute("INSERT INTO accounts (username, partner, role) VALUES (?, ?, ?)", (username, partner, role))
-            conn.commit()
-            conn.close()
-        except sqlite3.IntegrityError:
-            pass
-    return redirect(url_for('admin_panel'))
-
-# --- PHÂN HỆ DÀNH RIÊNG CHO BÁC SĨ (DOCTOR PORTAL) ---
-
-@app.route('/doctor')
-def doctor_portal():
-    doctor_name = request.args.get('doctor_name', 'BS. Nguyễn Văn Khải')
-    conn = get_db_connection()
-    # Xem toàn bộ danh sách bệnh nhân được chỉ định hoặc tất cả để xử lý nhanh
-    patients = conn.execute("SELECT * FROM crm_patients").fetchall()
-    conn.close()
-    return render_template('doctor.html', patients=patients, doctor_name=doctor_name)
-
-@app.route('/api/doctor/update', methods=['POST'])
-def doctor_update_patient():
-    sid = request.form.get('sid')
-    notes = request.form.get('doctor_notes')
-    revisit = request.form.get('revisit_date')
-    prescription = request.form.get('prescription_text', '') # Nhập toa dạng text nhanh/link tiện lợi
-    
-    if sid:
-        conn = get_db_connection()
-        conn.execute('''
-            UPDATE crm_patients 
-            SET doctor_notes = ?, revisit_date = ?, prescription_path = ?, last_interaction = 'Bác sĩ đã kê toa & hẹn khám'
-            WHERE sid = ?
-        ''', (notes, revisit, prescription, sid))
-        conn.commit()
-        conn.close()
-    return redirect(url_for('doctor_portal'))
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+</body>
+</html>

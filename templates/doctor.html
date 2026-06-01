@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DXCON - Phân Hệ Bác Sĩ Chỉ Định</title>
+    <title>DXCON - Phân Hệ Bác Sĩ & Phòng Khám</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
@@ -12,21 +12,82 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h2 class="fw-bold text-primary">🩺 PHÂN HỆ BÁC SĨ CHỈ ĐỊNH ĐỘC LẬP</h2>
-                <p class="text-muted">Xem danh sách bệnh nhân phòng khám, kê đơn thuốc và đẩy lịch hẹn tái khám</p>
+                <p class="text-muted">Tài khoản Bác sĩ: <b class="text-dark">{{ doctor_name }}</b> | Cơ sở: <b class="text-success">{{ clinic }}</b></p>
             </div>
-            <a href="/" class="btn btn-outline-secondary fw-bold">← Ra Trang Chủ</a>
+            <a href="/logout" class="btn btn-danger fw-bold btn-sm">🔒 ĐĂNG XUẤT</a>
+        </div>
+
+        <div class="card p-3 shadow-sm bg-white mb-4">
+            <form action="/doctor" method="GET" class="row g-2">
+                <div class="col-md-10">
+                    <input type="text" class="form-control" name="search" placeholder="🔍 Tìm kiếm bệnh nhân theo Tên hoặc Mã SID thuộc quyền phòng khám của bạn...">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">TÌM KIẾM</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-5">
+                <div class="card p-4 shadow-sm bg-white h-100">
+                    <h4 class="fw-bold text-info mb-3">🔬 Danh Mục Gói Có Sẵn</h4>
+                    <div class="list-group" style="max-height: 280px; overflow-y: auto;">
+                        {% for t in tests %}
+                        <div class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1 fw-bold text-primary">{{ t.name }}</h6>
+                                <small class="text-danger fw-bold">{{ t.price }} đ</small>
+                            </div>
+                            <small class="text-muted">Mã: {{ t.code }} | Loại: {{ t.category }} | Ống: {{ t.tube_type }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="card p-4 shadow-sm bg-white h-100 border-top border-primary border-4">
+                    <h4 class="fw-bold text-primary mb-3">➕ Cho Chỉ Định Xét Nghiệm Mới</h4>
+                    <form action="/api/doctor/new_order" method="POST" class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Họ Tên Bệnh Nhân</label>
+                            <input type="text" class="form-control" name="patient_name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Số Điện Thoại</label>
+                            <input type="tel" class="form-control" name="patient_phone" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Thời gian hẹn thu mẫu</label>
+                            <input type="time" class="form-control" name="pickup_time_est" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Chỉ định gói xét nghiệm dịch vụ</label>
+                            <select class="form-select" name="chosen_test">
+                                {% for t in tests %}
+                                <option value="{{ t.id }}">{{ t.name }} (Mã: {{ t.code }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-primary fw-bold btn-sm">🚀 PHÁT HÀNH CHỈ ĐỊNH ĐIỀU PHỐI</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <div class="card p-4 shadow-sm bg-white mb-4">
-            <h4 class="fw-bold text-dark mb-3">📋 Danh Sách Bệnh Nhân Đăng Ký Hệ Thống</h4>
+            <h4 class="fw-bold text-dark mb-3">📋 Quản Lý Bệnh Nhân Đăng Ký Tại Cơ Sở</h4>
             <div class="table-responsive">
                 <table class="table table-bordered table-hover align-middle">
                     <thead class="table-dark">
                         <tr>
                             <th>Mã SID</th>
                             <th>Tên Bệnh Nhân</th>
-                            <th>Số Điện thoại</th>
-                            <th>Địa Chỉ / Vị Trí Lấy Mẫu</th>
+                            <th>Liên Hệ</th>
+                            <th>Đề Xuất Hỗ Trợ Từ AI (WHO chuẩn)</th>
                             <th>Thao Tác Chuyên Môn</th>
                         </tr>
                     </thead>
@@ -36,15 +97,15 @@
                             <td class="fw-bold text-danger">{{ p.sid }}</td>
                             <td class="fw-bold">{{ p.name }}</td>
                             <td>{{ p.phone }}</td>
-                            <td><small>{{ p.address }}</small></td>
+                            <td><small class="text-primary fw-bold d-block p-1 bg-light rounded border border-primary">{{ p.ai_suggested }}</small></td>
                             <td>
-                                <button class="btn btn-sm btn-primary fw-bold" onclick="selectPatient('{{ p.sid }}', '{{ p.name }}')">
-                                    📝 Kê Toa & Ghi Chú
+                                <button class="btn btn-sm btn-success fw-bold" onclick="openDoctorAction('{{ p.sid }}', '{{ p.name }}')">
+                                    📝 Thêm Lời Khuyên & Kê Toa
                                 </button>
                             </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="5" class="text-center text-muted">Hiện tại chưa có bệnh nhân nào đặt lịch.</td></tr>
+                        <tr><td colspan="5" class="text-center text-muted">Không tìm thấy bệnh nhân nào thuộc phạm vi quản lý hoặc trùng khớp từ khóa.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -52,36 +113,35 @@
         </div>
 
         <div class="card p-4 shadow-sm bg-white border-start border-success border-4" id="doctorFormZone" style="display: none;">
-            <h4 class="fw-bold text-success mb-3">Cập Nhật Y Khoa Cho BN: <span id="patientLabel"></span></h4>
-            <form action="/api/doctor/update" method="POST">
+            <h4 class="fw-bold text-success mb-3">Xử lý y tế chuyên sâu cho BN: <span id="patientLabel"></span></h4>
+            <form action="/api/doctor/action" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="sid" id="patientSid">
                 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Upload Toa Thuốc (Nhập đơn thuốc hoặc dán link ảnh toa thuốc)</label>
-                    <textarea class="form-control" name="prescription_text" rows="3" placeholder="Nhập tên thuốc, liều lượng... hoặc link toa thuốc điện tử" required></textarea>
+                    <label class="form-label fw-bold text-danger">Upload Đơn Thuốc Đính Kèm (Định dạng File Ảnh / PDF / Tài liệu)</label>
+                    <input type="file" class="form-control border-danger" name="prescription_file" required>
                 </div>
                 
                 <div class="row g-3 mb-4">
                     <div class="col-md-8">
-                        <label class="form-label fw-bold">Ghi chú & Lời khuyên của bác sĩ phòng khám</label>
-                        <input type="text" class="form-control" name="doctor_notes" placeholder="Nghỉ ngơi điều độ, uống nhiều nước ấm..." required>
+                        <label class="form-label fw-bold">Lời dặn dò & Lời khuyên của bác sĩ</label>
+                        <input type="text" class="form-control" name="doctor_notes" placeholder="Chế độ ăn uống, sinh hoạt lành mạnh theo đơn..." required>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold text-danger">📅 Hẹn Lịch Tái Khám</label>
-                        <input type="date" class="form-control fw-bold border-danger text-danger" name="revisit_date" required>
+                        <input type="date" class="form-control border-danger text-danger fw-bold" name="revisit_date" required>
                     </div>
                 </div>
-                
-                <div class="d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('doctorFormZone').style.display='none'">Hủy</button>
-                    <button type="submit" class="btn btn-success btn-sm fw-bold">🚀 ĐẨY DỮ LIỆU SANG BỆNH NHÂN</button>
+                <div class="text-end">
+                    <button type="button" class="btn btn-sm btn-secondary me-2" onclick="document.getElementById('doctorFormZone').style.display='none'">Hủy</button>
+                    <button type="submit" class="btn btn-success fw-bold btn-sm">🚀 XÁC NHẬN ĐẨY DỮ LIỆU ĐẾN HỒ SƠ BỆNH NHÂN</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        function selectPatient(sid, name) {
+        function openDoctorAction(sid, name) {
             document.getElementById("doctorFormZone").style.display = "block";
             document.getElementById("patientLabel").innerText = name + " [" + sid + "]";
             document.getElementById("patientSid").value = sid;

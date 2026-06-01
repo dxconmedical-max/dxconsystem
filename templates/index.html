@@ -1,1 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DXCON MEDICAL - Hệ Thống Đặt Lịch Y Tế</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar-brand { font-weight: bold; color: #0d6efd !important; }
+        .hero-section { background: linear-gradient(135deg, #0d6efd, #0099ff); color: white; padding: 60px 0; text-align: center; border-radius: 0 0 20px 20px; }
+        .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; }
+        .card-custom:hover { transform: translateY(-5px); }
+        .btn-primary { background-color: #0d6efd; border: none; border-radius: 8px; padding: 10px 20px; }
+    </style>
+</head>
+<body>
 
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="/">🏥 DXCON MEDICAL</a>
+            <a href="/admin" class="btn btn-outline-secondary btn-sm">Quản trị viên</a>
+        </div>
+    </nav>
+
+    <div class="hero-section">
+        <div class="container">
+            <h1 class="display-5 fw-bold">HỆ THỐNG ĐẶT LỊCH XÉT NGHIỆM Y TẾ</h1>
+            <p class="lead">Nhanh chóng - Chính xác - Bảo mật công nghệ IoT</p>
+        </div>
+    </div>
+
+    <div class="container my-5">
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card card-custom p-4 bg-white">
+                    <h3 class="mb-4 text-primary fw-bold">Đăng Ký Xét Nghiệm</h3>
+                    <form action="/api/guest/book" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Họ và tên khách hàng</label>
+                            <input type="text" class="form-control" name="guest_name" placeholder="Nguyễn Văn A" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Số điện thoại liên hệ</label>
+                            <input type="tel" class="form-control" name="guest_phone" placeholder="0901234567" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Hình thức lấy mẫu</label>
+                            <select class="form-select" name="service_type" id="serviceType" onchange="toggleAddress()">
+                                <option value="at_lab">Đến trực tiếp phòng Lab xét nghiệm</option>
+                                <option value="at_home">🛵 Điều phối nhân viên đến lấy mẫu tại nhà</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 id="addressField" style="display:none;">
+                            <label class="form-label fw-bold">Địa chỉ lấy mẫu tại nhà</label>
+                            <input type="text" class="form-control" name="guest_address" placeholder="Số nhà, tên đường, quận/huyện...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Chọn gói xét nghiệm</label>
+                            <select class="form-select" name="chosen_test">
+                                {% for test in tests %}
+                                <option value="{{ test.name }}">{{ test.name }} - {{ "{:,}".format(test.price) }} VNĐ</option>
+                                {% else %}
+                                <option value="Tổng quát">Gói xét nghiệm máu tổng quát</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Cơ sở y tế xử lý mẫu</label>
+                            <select class="form-select" name="chosen_lab">
+                                <option value="Trung tâm Xét nghiệm Quận 1">Trung tâm Xét nghiệm Quận 1</option>
+                                <option value="Lab Trung tâm TP.HCM">Lab Trung tâm TP.HCM</option>
+                                <option value="Phòng xét nghiệm chất lượng cao">Phòng xét nghiệm chất lượng cao</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold">XÁC NHẬN ĐĂNG KÝ XIN HẸN</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card card-custom p-4 bg-white h-100">
+                    <h3 class="mb-4 text-success fw-bold">Danh Mục Xét Nghiệm</h3>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tên xét nghiệm</th>
+                                    <th>Thời gian trả kết quả</th>
+                                    <th>Giá niêm yết</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for test in tests %}
+                                <tr>
+                                    <td class="fw-bold">{{ test.name }}</td>
+                                    <td><span class="badge bg-info text-dark">{{ test.eta if test.eta else '2-4 giờ' }}</span></td>
+                                    <td class="text-danger fw-bold">{{ "{:,}".format(test.price) }} đ</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td class="fw-bold">Xét nghiệm Công thức máu</td>
+                                    <td><span class="badge bg-info text-dark">2 giờ</span></td>
+                                    <td class="text-danger fw-bold">250,000 đ</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Xét nghiệm Đường huyết (Glucose)</td>
+                                    <td><span class="badge bg-info text-dark">1.5 giờ</span></td>
+                                    <td class="text-danger fw-bold">120,000 đ</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleAddress() {
+            var type = document.getElementById("serviceType").value;
+            var field = document.getElementById("addressField");
+            if(type === "at_home") { field.style.display = "block"; } 
+            else { field.style.display = "none"; }
+        }
+    </script>
+</body>
+</html>

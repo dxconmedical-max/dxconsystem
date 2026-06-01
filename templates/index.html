@@ -3,147 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DXCON MEDICAL - Đặt Lịch & Tra Cứu Y Tế</title>
+    <title>DXCON MEDICAL - Đặt Lịch & Tra Cứu Kết Quả</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
-        .hero-section { background: linear-gradient(135deg, #0d6efd, #0056b3); color: white; padding: 40px 0; text-align: center; border-radius: 0 0 20px 20px; }
-        .card-custom { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-    </style>
 </head>
-<body>
+<body class="bg-light">
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="/">🏥 DXCON MEDICAL</a>
+            <a class="navbar-brand fw-bold" href="/">🏥 DXCON MEDICAL</a>
             <div>
-                <a href="/doctor" class="btn btn-outline-primary btn-sm me-2">Phân hệ Bác Sĩ</a>
-                <a href="/admin" class="btn btn-outline-secondary btn-sm">Hệ Thống Admin</a>
+                <a href="/doctor" class="btn btn-light btn-sm fw-bold me-2">Phân Hệ Bác Sĩ</a>
+                <a href="/admin" class="btn btn-dark btn-sm fw-bold">Hệ Thống Admin</a>
             </div>
         </div>
     </nav>
 
-    <div class="hero-section">
-        <div class="container">
-            <h2 class="fw-bold">HỆ THỐNG Y TẾ SỐ DXCON</h2>
-            <p>Nhanh chóng - Chính xác - Tích hợp mã định danh SID & Hộp IoT</p>
-        </div>
-    </div>
-
     <div class="container my-5">
-        <div class="card card-custom p-4 bg-white mb-5 border-start border-primary border-4">
-            <h4 class="fw-bold text-primary mb-3">🔍 Tra Cứu Tiến Độ Xét Nghiệm & Toa Thuốc</h4>
-            <form action="/" method="GET" class="row g-3">
+        <div class="card p-4 shadow-sm mb-5 border-start border-primary border-4 bg-white">
+            <h4 class="fw-bold text-primary mb-3">🔍 Tra Cứu Kết Quả & Toa Thuốc (Bằng Mã SID)</h4>
+            <form action="/" method="GET" class="row g-2">
                 <div class="col-md-9">
-                    <input type="text" class="form-control" name="search_sid" value="{{ search_sid }}" placeholder="Nhập mã số tra cứu SID của bạn (Ví dụ: SID0601...)" required>
+                    <input type="text" class="form-control" name="search_sid" value="{{ search_sid }}" placeholder="Nhập mã định danh cá nhân SID (Ví dụ: SID0601...)" required>
                 </div>
                 <div class="col-md-3">
-                    <button type="submit" class="btn btn-success w-100 fw-bold">TRA CỨU NGAY</button>
+                    <button type="submit" class="btn btn-success w-100 fw-bold">TRA CỨU</button>
                 </div>
             </form>
 
             {% if patient_info %}
             <div class="mt-4 p-3 bg-light rounded border">
-                <h5 class="text-success fw-bold">Thông tin tìm thấy cho Mã định danh: {{ patient_info.sid }}</h5>
-                <div class="row mt-2">
+                <h5 class="text-success fw-bold">Kết quả định danh cho: {{ patient_info.sid }}</h5>
+                <div class="row g-3 mt-1">
                     <div class="col-md-4"><b>Bệnh nhân:</b> {{ patient_info.name }}</div>
+                    <div class="col-md-4"><b>Số điện thoại:</b> {{ patient_info.phone }}</div>
                     <div class="col-md-4"><b>Trạng thái mẫu:</b> <span class="badge bg-warning text-dark">{{ patient_info.last_interaction }}</span></div>
-                    <div class="col-md-4"><b>Nơi xử lý:</b> {{ patient_info.chosen_lab }}</div>
+                    <div class="col-md-12"><b>Địa chỉ/Vị trí:</b> {{ patient_info.address }}</div>
                 </div>
                 <hr>
-                <div class="row">
-                    <div class="col-md-6"><b>Lời khuyên từ Bác sĩ:</b> <p class="text-muted">{{ patient_info.doctor_notes if patient_info.doctor_notes else 'Đang chờ bác sĩ đọc kết quả...' }}</p></div>
-                    <div class="col-md-3"><b>Toa thuốc đính kèm:</b> <br>{{ patient_info.prescription_path if patient_info.prescription_path else 'Chưa có toa thuốc' }}</div>
-                    <div class="col-md-3"><b>Lịch hẹn tái khám:</b> <br><span class="text-danger fw-bold">📅 {{ patient_info.revisit_date if patient_info.revisit_date else 'Chưa chỉ định' }}</span></div>
+                <div class="row g-3">
+                    <div class="col-md-6"><b>Lời khuyên từ Bác sĩ:</b> <p class="text-primary fw-bold">{{ patient_info.doctor_notes if patient_info.doctor_notes else 'Hệ thống đang chạy xét nghiệm...' }}</p></div>
+                    <div class="col-md-3"><b>Toa thuốc của bạn:</b> <p class="text-danger fw-bold">{{ patient_info.prescription_path if patient_info.prescription_path else 'Chưa có chỉ định thuốc' }}</p></div>
+                    <div class="col-md-3"><b>📅 Hẹn ngày tái khám:</b> <p class="text-danger fw-bold">{{ patient_info.revisit_date if patient_info.revisit_date else 'Chưa có lịch hẹn' }}</p></div>
                 </div>
             </div>
             {% elif search_sid %}
-            <div class="alert alert-danger mt-3">Không tìm thấy dữ liệu hợp lệ cho mã SID này. Vui lòng kiểm tra lại!</div>
+            <div class="alert alert-danger mt-3 mb-0">Mã tra cứu SID không đúng hoặc chưa được đồng bộ hệ thống!</div>
             {% endif %}
         </div>
 
         <div class="row g-4">
-            <div class="col-lg-6">
-                <div class="card card-custom p-4 bg-white h-100">
-                    <h3 class="mb-4 text-primary fw-bold">Đăng Ký Đặt Lịch Lấy Mẫu</h3>
+            <div class="col-md-6">
+                <div class="card p-4 shadow-sm bg-white">
+                    <h4 class="fw-bold text-primary mb-4">Đăng Ký Đặt Lịch Xét Nghiệm</h4>
                     <form action="/api/guest/book" method="POST">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Họ và tên khách hàng</label>
+                            <label class="form-label fw-bold">Họ và tên bệnh nhân</label>
                             <input type="text" class="form-control" name="guest_name" placeholder="Nguyễn Văn A" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Số điện thoại liên hệ</label>
+                            <label class="form-label fw-bold">Số điện thoại</label>
                             <input type="tel" class="form-control" name="guest_phone" placeholder="0901234567" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Hình thức thực hiện</label>
-                            <select class="form-select" name="service_type" id="serviceType" onchange="toggleAddressField()">
-                                <option value="at_lab">Đến trực tiếp phòng Lab xét nghiệm</option>
-                                <option value="at_home">🛵 Điều phối nhân viên đến lấy mẫu tại nhà</option>
+                            <select class="form-select" name="service_type" id="serviceType" onchange="toggleAddress()">
+                                <option value="at_lab">Đến trực tiếp phòng Lab xử lý mẫu</option>
+                                <option value="at_home">💡 Điều phối nhân viên đến lấy mẫu tại nhà</option>
                             </select>
                         </div>
-                        <div class="mb-3" id="addressField" style="display:none;">
-                            <label class="form-label fw-bold text-danger">Địa chỉ/Vị trí lấy mẫu chi tiết</label>
+                        <div class="mb-3" id="addressBox" style="display:none;">
+                            <label class="form-label fw-bold text-danger">Địa chỉ / Vị trí lấy mẫu chi tiết</label>
                             <input type="text" class="form-control border-danger" id="guest_address" name="guest_address" placeholder="Số nhà, tên đường, phường, quận/huyện...">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Chọn gói xét nghiệm chỉ định</label>
+                            <label class="form-label fw-bold">Gói xét nghiệm</label>
                             <select class="form-select" name="chosen_test">
                                 {% for test in tests %}
-                                <option value="{{ test.name }}">{{ test.name }} - {{ "{:,}".format(test.price) }} đ</option>
+                                <option value="{{ test.name }}">{{ test.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Cơ sở y tế điều phối</label>
+                            <label class="form-label fw-bold">Cơ sở xử lý</label>
                             <select class="form-select" name="chosen_lab">
-                                <option value="Lab Trung tâm TP.HCM">Lab Trung tâm TP.HCM</option>
-                                <option value="Phòng xét nghiệm chất lượng cao DX">Phòng xét nghiệm chất lượng cao DX</option>
+                                <option value="Trung tâm Xét nghiệm Quận 1">Trung tâm Xét nghiệm Quận 1</option>
+                                <option value="Phòng Lab liên kết DX-Phú Nhuận">Phòng Lab liên kết DX-Phú Nhuận</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2">XÁC NHẬN ĐĂNG KÝ HẸN</button>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold py-2">XÁC NHẬN ĐẶT LỊCH</button>
                     </form>
                 </div>
             </div>
 
-            <div class="col-lg-6">
-                <div class="card card-custom p-4 bg-white h-100">
-                    <h3 class="mb-4 text-success fw-bold">Bảng Giá Dịch Vụ Công Khai</h3>
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Tên Xét Nghiệm</th>
-                                    <th>Trả Kết Quả</th>
-                                    <th>Giá Niêm Yết</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for test in tests %}
-                                <tr>
-                                    <td class="fw-bold">{{ test.name }}</td>
-                                    <td><span class="badge bg-info text-dark">{{ test.eta }}</span></td>
-                                    <td class="text-danger fw-bold">{{ "{:,}".format(test.price) }} đ</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+            <div class="col-md-6">
+                <div class="card p-4 shadow-sm bg-white">
+                    <h4 class="fw-bold text-success mb-4">Danh Mục Gói Xét Nghiệm</h4>
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tên dịch vụ</th>
+                                <th>Thời gian</th>
+                                <th>Giá niêm yết</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for test in tests %}
+                            <tr>
+                                <td class="fw-bold">{{ test.name }}</td>
+                                <td><span class="badge bg-info text-dark">{{ test.eta }}</span></td>
+                                <td class="text-danger fw-bold">{{ test.price }} đ</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        function toggleAddressField() {
+        function toggleAddress() {
             var type = document.getElementById("serviceType").value;
-            var field = document.getElementById("addressField");
+            var box = document.getElementById("addressBox");
             var input = document.getElementById("guest_address");
             if(type === "at_home") {
-                field.style.display = "block";
+                box.style.display = "block";
                 input.required = true;
             } else {
-                field.style.display = "none";
+                box.style.display = "none";
                 input.required = false;
             }
         }

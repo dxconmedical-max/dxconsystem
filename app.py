@@ -242,7 +242,7 @@ def add_contract():
 
 
 # TẠO NHANH DATA MẪU BAN ĐẦU ĐỂ CHẠY HỆ THỐNG
-@app.route('/testdata')
+@app.route('/khoitaodatalab')
 def create_master_test_data():
     # 1. Tạo gói xét nghiệm mẫu
     if not TestCatalog.query.get("XN01"):

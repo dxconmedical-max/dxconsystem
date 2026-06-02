@@ -21,7 +21,6 @@
         .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #475569; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; font-size: 13px; }
         .btn { background: #0066cc; color: white; border: none; padding: 9px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 13px; }
-        .btn-danger { background: #dc2626; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
         th { background: #f1f5f9; padding: 12px; font-weight: 600; color: #334155; border-bottom: 2px solid #e2e8f0; }
         td { padding: 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
@@ -34,9 +33,9 @@
 <body>
 
     <div class="header">
-        <h1>🏥 DXCON MEDICAL PORTAL V2 (ĐÃ ĐỒNG BỘ CHUẨN)</h1>
+        <h1>🏥 DXCON MEDICAL PORTAL V2 (ĐÃ SỬA LỖI 500)</h1>
         <div style="display: flex; gap: 10px; align-items: center;">
-            <span style="font-size: 13px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px;">⚙️ Hệ thống: <b>Đã vá lỗi DB và Cache</b></span>
+            <span style="font-size: 13px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px;">⚙️ Hệ thống: <b>Đã chuẩn hóa cú pháp</b></span>
             <a href="/" style="background: white; color: #0066cc; text-decoration: none; padding: 6px 15px; border-radius: 5px; font-weight: bold; font-size: 13px;">Đăng xuất</a>
         </div>
     </div>
@@ -52,10 +51,7 @@
 
         <div id="tab-logistics" class="tab-content active">
             <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="margin: 0; color: #1e3a8a;">🚚 Phân Hệ Điều Hành Vận Chuyển Mẫu & Bắn Lệnh Zalo API</h3>
-                    <span style="background: #10b981; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">● Live Connected</span>
-                </div>
+                <h3>🚚 Phân Hệ Điều Hành Vận Chuyển Mẫu & Bắn Lệnh Zalo API</h3>
                 <table>
                     <thead>
                         <tr>
@@ -76,7 +72,7 @@
                             <td style="font-weight: bold; color: #0066cc;">{{ p.sid }}</td>
                             <td><b>{{ p.name }}</b></td>
                             <td>
-                                <a href="https://www.google.com/maps/search/?api=1&query={{ p.address }}" target="_blank" style="color: #0066cc; text-decoration: none; font-weight: 600;">
+                                <a href="https://maps.google.com/?q={{ p.address }}" target="_blank" style="color: #0066cc; text-decoration: none; font-weight: 600;">
                                     🗺️ {{ p.address }}
                                 </a>
                             </td>
@@ -106,11 +102,75 @@
         </div>
 
         <div id="tab-account" class="tab-content">
-            <div class="grid-2"><div class="card"><h3>Cấp Tài Khoản</h3><form action="/api/admin/account/add" method="POST"><div class="form-group"><label>Username</label><input type="text" name="username" required></div><div class="form-group"><label>Password</label><input type="password" name="password" required></div><div class="form-group"><label>Đối tác</label><input type="text" name="partner" required></div><div class="form-group"><label>Quyền</label><select name="role"><option value="Admin Điều phối">Admin Điều phối</option></select></div><button type="submit" class="btn">Kích Hoạt</button></form></div><div class="card"><h3>Tài Khoản Hiện Hành</h3><table><thead><tr><th>Username</th><th>Đối Tác</th><th>Quyền</th></tr></thead><tbody>{% for acc in accounts %}<tr><td>{{ acc.username }}</td><td>{{ acc.partner }}</td><td>{{ acc.role }}</td></tr>{% endfor %}</tbody></table></div></div>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Cấp Tài Khoản</h3>
+                    <form action="/api/admin/account/add" method="POST">
+                        <div class="form-group"><label>Username</label><input type="text" name="username" required></div>
+                        <div class="form-group"><label>Password</label><input type="password" name="password" required></div>
+                        <div class="form-group"><label>Đối tác</label><input type="text" name="partner" required></div>
+                        <div class="form-group">
+                            <label>Quyền</label>
+                            <select name="role"><option value="Admin Điều phối">Admin Điều phối</option></select>
+                        </div>
+                        <button type="submit" class="btn">Kích Hoạt</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3>Tài Khoản Hiện Hành</h3>
+                    <table>
+                        <thead><tr><th>Username</th><th>Đối Tác</th><th>Quyền</th></tr></thead>
+                        <tbody>
+                            {% for acc in accounts %}
+                            <tr><td>{{ acc.username }}</td><td>{{ acc.partner }}</td><td>{{ acc.role }}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div id="tab-contract" class="tab-content"><div class="card"><h3>Hợp Đồng B2B</h3><table><thead><tr><th>Mã HD</th><th>Tên Đối Tác</th><th>Chiết Khấu</th></tr></thead><tbody>{% for ct in contracts %}<tr><td>{{ ct.id }}</td><td>{{ ct.partner_name }}</td><td>{{ ct.discount }}%</td></tr>{% endfor %}</tbody></table></div></div>
-        <div id="tab-crm" class="tab-content"><div class="card"><h3>Hồ Sơ CRM Bệnh Nhân</h3><table><thead><tr><th>Mã SID</th><th>Họ Tên</th><th>Địa Chỉ</th><th>Tổng Tiền</th></tr></thead><tbody>{% text %}{% for p in crm_patients %}<tr><td>{{ p.sid }}</td><td>{{ p.name }}</td><td>{{ p.address }}</td><td>{{ p.total_amount }}</td></tr>{% endfor %}{% endtext %}</tbody></table></div></div>
-        <div id="tab-catalog" class="tab-content"><div class="card"><h3>Danh Mục Gói</h3><table><thead><tr><th>Mã XN</th><th>Tên Gói</th><th>Giá Niêm Yết</th></tr></thead><tbody>{% for t in tests %}<tr><td>{{ t.code }}</td><td>{{ t.name }}</td><td>{{ t.price }}</td></tr>{% endfor %}</tbody></table></div></div>
+
+        <div id="tab-contract" class="tab-content">
+            <div class="card">
+                <h3>Hợp Đồng B2B</h3>
+                <table>
+                    <thead><tr><th>Mã HD</th><th>Tên Đối Tác</th><th>Chiết Khấu</th></tr></thead>
+                    <tbody>
+                        {% for ct in contracts %}
+                        <tr><td>{{ ct.id }}</td><td>{{ ct.partner_name }}</td><td>{{ ct.discount }}%</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-crm" class="tab-content">
+            <div class="card">
+                <h3>Hồ Sơ CRM Bệnh Nhân</h3>
+                <table>
+                    <thead><tr><th>Mã SID</th><th>Họ Tên</th><th>Địa Chỉ</th><th>Tổng Tiền</th></tr></thead>
+                    <tbody>
+                        {% for p in crm_patients %}
+                        <tr><td>{{ p.sid }}</td><td>{{ p.name }}</td><td>{{ p.address }}</td><td>{{ p.total_amount }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-catalog" class="tab-content">
+            <div class="card">
+                <h3>Danh Mục Gói</h3>
+                <table>
+                    <thead><tr><th>Mã XN</th><th>Tên Gói</th><th>Giá Niêm Yết</th></tr></thead>
+                    <tbody>
+                        {% for t in tests %}
+                        <tr><td>{{ t.code }}</td><td>{{ t.name }}</td><td>{{ t.price }}</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>

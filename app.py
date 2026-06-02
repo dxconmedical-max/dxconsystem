@@ -1,20 +1,28 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-# Cần import các thư viện: Flask, SQLAlchemy, JWT, v.v.
+import requests
+from flask import request, jsonify
 
-app = Flask(__name__)
+# Giả định: Anh đã lưu ZALO_ACCESS_TOKEN và GOOGLE_MAPS_API_KEY vào Environment Variables trên Render
 
-# --- 3.6 Cấu hình hệ thống (API Key, Role, v.v.) ---
-@app.route('/admin/config', methods=['GET', 'POST'])
-def system_config():
-    # Xử lý cập nhật API Key Zalo, Google Maps
-    return render_template('admin.html', active_tab='3-6')
-
-# --- 3.5 Điều phối & Logistics (Trọng tâm) ---
-@app.route('/api/admin/3-5/dispatch', methods=['POST'])
-def dispatch():
+@app.route('/api/admin/logistics/dispatch', methods=['POST'])
+def dispatch_logistics():
     trip_id = request.form.get('trip_id')
-    driver = request.form.get('driver')
-    # Logic gọi Zalo API tại đây
-    return redirect(url_for('admin_portal'))
-
-# --- Các route 3.1 đến 3.4 tương tự... ---
+    driver_name = request.form.get('driver_name')
+    
+    # 1. Logic tính khoảng cách (Giả định gọi Google Maps API)
+    # distance = calculate_distance_google_maps(start_addr, end_addr)
+    distance = "6.5 km" # Demo: Sau này anh thay bằng hàm gọi API thật
+    
+    # 2. Logic gọi Zalo OA API
+    zalo_url = "https://openapi.zalo.me/v3.0/oa/message/cs"
+    headers = {"access_token": "YOUR_ZALO_ACCESS_TOKEN"}
+    data = {
+        "recipient": {"phone": "090xxxxxxx"}, # Số điện thoại tài xế
+        "message": {"text": f"Đơn hàng {trip_id} đã được điều phối cho tài xế {driver_name}. Khoảng cách: {distance}"}
+    }
+    
+    response = requests.post(zalo_url, json=data, headers=headers)
+    
+    if response.status_code == 200:
+        return "Đã gửi Zalo thành công cho tài xế!", 200
+    else:
+        return "Lỗi gửi Zalo", 500

@@ -7,165 +7,98 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f4f6f9; color: #333; }
         .header { background: #0066cc; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .header h1 { margin: 0; font-size: 22px; }
-        .container { padding: 25px; max-width: 1400px; margin: 0 auto; }
+        .container { padding: 25px; max-width: 1500px; margin: 0 auto; }
         .tab-menu { display: flex; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; gap: 10px; }
         .tab-btn { padding: 10px 18px; border: none; background: none; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
         .tab-btn.active { background: #0066cc; color: white; }
         .tab-btn:hover:not(.active) { background: #f1f5f9; color: #1e293b; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card h3 { margin-top: 0; margin-bottom: 15px; color: #1e3a8a; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #475569; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; font-size: 13px; }
-        .btn { background: #0066cc; color: white; border: none; padding: 9px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 13px; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
         th { background: #f1f5f9; padding: 12px; font-weight: 600; color: #334155; border-bottom: 2px solid #e2e8f0; }
         td { padding: 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
         .badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; display: inline-block; }
-        .badge-success { background: #dcfce7; color: #15803d; }
         .badge-warning { background: #fef3c7; color: #d97706; }
         .badge-info { background: #e0f2fe; color: #0369a1; }
+        .btn-zalo-driver { background: #0066cc; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; }
+        .btn-zalo-patient { background: #10b981; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; }
+        .action-cell { display: flex; gap: 8px; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>🏥 DXCON MEDICAL PORTAL V2 (ĐÃ SỬA LỖI 500)</h1>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <span style="font-size: 13px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px;">⚙️ Hệ thống: <b>Đã chuẩn hóa cú pháp</b></span>
-            <a href="/" style="background: white; color: #0066cc; text-decoration: none; padding: 6px 15px; border-radius: 5px; font-weight: bold; font-size: 13px;">Đăng xuất</a>
-        </div>
+        <h1>🏥 DXCON MASTER LOGISTICS PORTAL</h1>
+        <span style="font-size: 13px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px;">⚙️ Trạng thái: <b>Đồng bộ hóa Zalo-Kép hoàn tất</b></span>
     </div>
 
     <div class="container">
         <div class="tab-menu">
-            <button class="tab-btn active" onclick="switchTab(event, 'tab-logistics')">🚚 3.5 Điều Phối & IoT Giám Sát</button>
-            <button class="tab-btn" onclick="switchTab(event, 'tab-account')">🔑 3.1 Quản Lý Tài Khoản</button>
-            <button class="tab-btn" onclick="switchTab(event, 'tab-contract')">🤝 3.2 Đối Tác B2B</button>
-            <button class="tab-btn" onclick="switchTab(event, 'tab-crm')">👥 3.3 CRM Bệnh Nhân</button>
-            <button class="tab-btn" onclick="switchTab(event, 'tab-catalog')">🖊️ 3.4 Gói Dịch Vụ</button>
+            <button class="tab-btn active" onclick="switchTab(event, 'tab-logistics')">🚚 3.5 Điều Phối & Hệ Thống IoT Giám Sát</button>
         </div>
 
         <div id="tab-logistics" class="tab-content active">
             <div class="card">
-                <h3>🚚 Phân Hệ Điều Hành Vận Chuyển Mẫu & Bắn Lệnh Zalo API</h3>
+                <h3>🚚 Bảng Điều Phối Trung Tâm & Giám Sát Thùng Lạnh Real-time</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th>Mã Đơn</th>
-                            <th>Họ Tên Bệnh Nhân</th>
-                            <th>📍 Vị Trí Lấy Mẫu</th>
-                            <th>📏 Khoảng Cách</th>
-                            <th>👤 Tài Xế Phụ Trách</th>
-                            <th>🌡️ IoT Thùng Lạnh</th>
-                            <th>🔋 Pin Máy</th>
-                            <th>Trạng Thái</th>
-                            <th style="text-align: center;">Chỉ Định Mới & Đẩy Tin</th>
+                            <th>Mã Chuyến</th>
+                            <th>Bệnh Nhân (SID)</th>
+                            <th>📍 Vị Trí Giao Nhận</th>
+                            <th>📏 Tính Số Km</th>
+                            <th>🌡️ IoT Hộp Lạnh</th>
+                            <th>🔋 Pin Thiết Bị</th>
+                            <th>Trạng Thái Chuyến Đi</th>
+                            <th>👤 Chỉ Định Tài Xế Mới</th>
+                            <th style="text-align: center;">Tác Vụ Đẩy Zalo API</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for p in crm_patients %}
                         <tr>
                             <td style="font-weight: bold; color: #0066cc;">{{ p.sid }}</td>
-                            <td><b>{{ p.name }}</b></td>
+                            <td><b>{{ p.name }}</b><br><small style="color:#64748b;">SĐT: {{ p.phone }}</small></td>
                             <td>
-                                <a href="https://maps.google.com/?q={{ p.address }}" target="_blank" style="color: #0066cc; text-decoration: none; font-weight: 600;">
+                                <a href="https://maps.google.com/?q={{ p.address }}" target="_blank" style="color: #0066cc; text-decoration: none; font-weight: bold;">
                                     🗺️ {{ p.address }}
                                 </a>
                             </td>
-                            <td><span class="badge badge-warning">~6.5 km</span></td>
-                            <td style="color: #059669; font-weight: bold;">👤 {{ p.driver_name }}</td>
-                            <td style="color: #dc2626; font-weight: bold; font-size: 14px;">{{ p.temperature }}</td>
+                            <td><span class="badge badge-warning">📍 6.5 km</span></td>
+                            <td style="color: #dc2626; font-weight: bold;">{{ p.temperature }}</td>
                             <td>⚡ {{ p.battery }}</td>
                             <td><span class="badge badge-info">{{ p.status }}</span></td>
-                            <td style="text-align: center;">
-                                <form action="/api/admin/logistics/dispatch" method="POST" style="display: flex; gap: 5px; justify-content: center; margin: 0;">
+                            
+                            <!-- BẮN LỆNH CHO TÀI XẾ -->
+                            <td>
+                                <form id="form-driver-{{ p.sid }}" action="/api/admin/logistics/dispatch" method="POST" style="margin:0;">
                                     <input type="hidden" name="trip_id" value="{{ p.sid }}">
                                     <select name="driver_name" style="padding: 5px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 12px;">
-                                        <option value="Nguyễn Văn A">Nguyễn Văn A</option>
-                                        <option value="Trần Văn B">Trần Văn B</option>
-                                        <option value="Lê Văn C">Lê Văn C</option>
+                                        <option value="Nguyễn Văn A" {% if p.driver_name == "Nguyễn Văn A" %}selected{% endif %}>Nguyễn Văn A</option>
+                                        <option value="Trần Văn B" {% if p.driver_name == "Trần Văn B" %}selected{% endif %}>Trần Văn B</option>
+                                        <option value="Lê Văn C" {% if p.driver_name == "Lê Văn C" %}selected{% endif %}>Lê Văn C</option>
                                     </select>
-                                    <button type="submit" style="background: #0066cc; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px;">
-                                        💬 Đẩy Zalo
-                                    </button>
                                 </form>
                             </td>
+
+                            <!-- Ô CHỨA NÚT TÁC VỤ KÉP CHUYÊN NGHIỆP -->
+                            <td>
+                                <div class="action-cell">
+                                    <button type="submit" form="form-driver-{{ p.sid }}" class="btn-zalo-driver">
+                                        💬 Đẩy Zalo Xế
+                                    </button>
+                                    
+                                    <form action="/api/admin/logistics/send-result" method="POST" style="margin:0;">
+                                        <input type="hidden" name="trip_id" value="{{ p.sid }}">
+                                        <button type="submit" class="btn-zalo-patient">
+                                            📄 Gửi KQ Khách
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="tab-account" class="tab-content">
-            <div class="grid-2">
-                <div class="card">
-                    <h3>Cấp Tài Khoản</h3>
-                    <form action="/api/admin/account/add" method="POST">
-                        <div class="form-group"><label>Username</label><input type="text" name="username" required></div>
-                        <div class="form-group"><label>Password</label><input type="password" name="password" required></div>
-                        <div class="form-group"><label>Đối tác</label><input type="text" name="partner" required></div>
-                        <div class="form-group">
-                            <label>Quyền</label>
-                            <select name="role"><option value="Admin Điều phối">Admin Điều phối</option></select>
-                        </div>
-                        <button type="submit" class="btn">Kích Hoạt</button>
-                    </form>
-                </div>
-                <div class="card">
-                    <h3>Tài Khoản Hiện Hành</h3>
-                    <table>
-                        <thead><tr><th>Username</th><th>Đối Tác</th><th>Quyền</th></tr></thead>
-                        <tbody>
-                            {% for acc in accounts %}
-                            <tr><td>{{ acc.username }}</td><td>{{ acc.partner }}</td><td>{{ acc.role }}</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-contract" class="tab-content">
-            <div class="card">
-                <h3>Hợp Đồng B2B</h3>
-                <table>
-                    <thead><tr><th>Mã HD</th><th>Tên Đối Tác</th><th>Chiết Khấu</th></tr></thead>
-                    <tbody>
-                        {% for ct in contracts %}
-                        <tr><td>{{ ct.id }}</td><td>{{ ct.partner_name }}</td><td>{{ ct.discount }}%</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="tab-crm" class="tab-content">
-            <div class="card">
-                <h3>Hồ Sơ CRM Bệnh Nhân</h3>
-                <table>
-                    <thead><tr><th>Mã SID</th><th>Họ Tên</th><th>Địa Chỉ</th><th>Tổng Tiền</th></tr></thead>
-                    <tbody>
-                        {% for p in crm_patients %}
-                        <tr><td>{{ p.sid }}</td><td>{{ p.name }}</td><td>{{ p.address }}</td><td>{{ p.total_amount }}</td></tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="tab-catalog" class="tab-content">
-            <div class="card">
-                <h3>Danh Mục Gói</h3>
-                <table>
-                    <thead><tr><th>Mã XN</th><th>Tên Gói</th><th>Giá Niêm Yết</th></tr></thead>
-                    <tbody>
-                        {% for t in tests %}
-                        <tr><td>{{ t.code }}</td><td>{{ t.name }}</td><td>{{ t.price }}</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>

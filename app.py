@@ -459,4 +459,38 @@ def admin_dispatch_driver():
     return redirect(url_for('admin_panel'))
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5000)# ==========================================
+# TÍNH NĂNG MỚI: API LẤY CỔNG KẾT QUẢ LAB THAM CHIẾU GIÁN TIẾP
+# ==========================================
+@app.route('/api/doctor/get_lab_frame/<string:sid>')
+def doctor_get_lab_frame(sid):
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Xác thực không hợp lệ'}), 401
+    
+    conn = get_db_connection()
+    # Tự động truy vấn chéo từ bệnh nhân sang bảng hợp đồng (contracts) để lấy Link kết quả Lab
+    row = conn.execute('''
+        SELECT p.sid, p.name, p.chosen_lab, c.lab_result_url, c.lab_account_shared
+        FROM crm_patients p
+        LEFT JOIN contracts c ON p.chosen_lab = c.partner_name
+        WHERE p.sid = ?
+    ''', (sid,)).fetchone()
+    conn.close()
+    
+    # Nếu Lab đối tác đó đã được cấu hình Link Web ở Module 3.3
+    if row and row['lab_result_url']:
+        # Giả lập Barcode tự động theo mã bệnh nhân để truyền thẳng vào cổng tra cứu của Lab
+        mock_barcode = f"BAR-{sid}" 
+        full_embedded_url = f"{row['lab_result_url']}?agent={row['lab_account_shared']}&barcode={mock_barcode}"
+        return jsonify({
+            'success': True,
+            'lab_name': row['chosen_lab'],
+            'barcode': mock_barcode,
+            'account_shared': row['lab_account_shared'],
+            'embed_url': full_embedded_url
+        })
+        
+    return jsonify({
+        'success': False, 
+        'message': 'Phòng Lab liên kết này hiện chưa cấu hình hoặc chưa tích hợp link Cổng tra cứu trực tuyến kết quả.'
+    })

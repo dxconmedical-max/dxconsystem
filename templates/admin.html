@@ -1,12 +1,58 @@
-<form action="/api/admin/logistics/dispatch" method="POST" class="dispatch-form">
-    <input type="hidden" name="trip_id" value="{{ p.sid }}">
-    
-    <select name="driver_name" required>
-        <option value="Tai_Xe_1">Tài xế Nguyễn Văn A</option>
-        <option value="Tai_Xe_2">Tài xế Trần Văn B</option>
-    </select>
-    
-    <button type="submit" style="background: #0066cc; color: white; padding: 5px 10px; border-radius: 4px;">
-        💬 Điều phối Zalo
-    </button>
-</form>
+<div class="tabs">
+    <button onclick="show('3-1')">3.1 Tổng quan</button>
+    <button onclick="show('3-2')">3.2 Đối tác</button>
+    <button onclick="show('3-3')">3.3 Bệnh nhân</button>
+    <button onclick="show('3-4')">3.4 Danh mục</button>
+    <button onclick="show('3-5')">3.5 Điều phối</button>
+    <button onclick="show('3-6')">3.6 Cấu hình</button>
+</div>
+
+<div id="3-5" class="content">
+    <h3>3.5 Điều Phối Logistics</h3>
+    <table>
+        {% for p in crm_patients %}
+        <tr>
+            <td>{{ p.sid }}</td>
+            <td>
+                <form action="/api/admin/3-5/dispatch" method="POST">
+                    <input type="hidden" name="trip_id" value="{{ p.sid }}">
+                    <select name="driver">
+                        <option>Tài xế A</option>
+                        <option>Tài xế B</option>
+                    </select>
+                    <button type="submit">💬 Đẩy Zalo</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+<div class="card" id="3-5">
+    <h3>3.5 Điều Phối Logistics & IoT</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Mã Chuyến</th><th>Bệnh Nhân</th><th>Tọa độ/Địa chỉ</th><th>Khoảng cách</th><th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in crm_patients %}
+            <tr>
+                <td>{{ p.sid }}</td>
+                <td>{{ p.name }}</td>
+                <td>{{ p.address }}</td>
+                <td><b>{{ p.distance_km }} km</b></td> <td>
+                    <form action="/api/admin/logistics/dispatch" method="POST">
+                        <input type="hidden" name="trip_id" value="{{ p.sid }}">
+                        <select name="driver_name">
+                            <option value="Tai_Xe_A">Tài xế A</option>
+                            <option value="Tai_Xe_B">Tài xế B</option>
+                        </select>
+                        <button type="submit" class="btn-zalo">💬 Đẩy Zalo</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

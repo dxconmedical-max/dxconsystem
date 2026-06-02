@@ -26,3 +26,18 @@ def dispatch_logistics():
         return "Đã gửi Zalo thành công cho tài xế!", 200
     else:
         return "Lỗi gửi Zalo", 500
+import os
+import requests
+
+def get_distance_km(origin_address, destination_address):
+    # API Key được lấy từ biến môi trường (Bảo mật tuyệt đối)
+    api_key = os.environ.get('GOOGLE_MAPS_API_KEY')
+    url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin_address}&destinations={destination_address}&key={api_key}"
+    
+    try:
+        response = requests.get(url).json()
+        # Lấy giá trị distance tính bằng mét rồi đổi sang km
+        distance_meters = response['rows'][0]['elements'][0]['distance']['value']
+        return round(distance_meters / 1000, 1)
+    except Exception as e:
+        return 0.0 # Trả về 0 nếu lỗi API hoặc không tìm thấy địa chỉ

@@ -6,10 +6,10 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f4f6f9; color: #333; }
         .header { background: #0066cc; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .header h1 { margin: 0; font-size: 22px; display: flex; align-items: center; gap: 10px; }
+        .header h1 { margin: 0; font-size: 22px; }
         .container { padding: 25px; max-width: 1400px; margin: 0 auto; }
-        .tab-menu { display: flex; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; gap: 10px; overflow-x: auto; }
-        .tab-btn { padding: 10px 18px; border: none; background: none; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .tab-menu { display: flex; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; gap: 10px; }
+        .tab-btn { padding: 10px 18px; border: none; background: none; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
         .tab-btn.active { background: #0066cc; color: white; }
         .tab-btn:hover:not(.active) { background: #f1f5f9; color: #1e293b; }
         .tab-content { display: none; }
@@ -20,14 +20,11 @@
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #475569; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; font-size: 13px; }
-        .btn { background: #0066cc; color: white; border: none; padding: 9px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 13px; transition: background 0.2s; }
-        .btn:hover { background: #0052a3; }
+        .btn { background: #0066cc; color: white; border: none; padding: 9px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 13px; }
         .btn-danger { background: #dc2626; }
-        .btn-danger:hover { background: #b91c1c; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
         th { background: #f1f5f9; padding: 12px; font-weight: 600; color: #334155; border-bottom: 2px solid #e2e8f0; }
         td { padding: 12px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
-        tr:hover { background: #f8fafc; }
         .badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; display: inline-block; }
         .badge-success { background: #dcfce7; color: #15803d; }
         .badge-warning { background: #fef3c7; color: #d97706; }
@@ -37,179 +34,40 @@
 <body>
 
     <div class="header">
-        <h1>🏥 DXCON MEDICAL MASTER PORTAL</h1>
+        <h1>🏥 DXCON MEDICAL PORTAL V2 (ĐÃ ĐỒNG BỘ CHUẨN)</h1>
         <div style="display: flex; gap: 10px; align-items: center;">
-            <span style="font-size: 13px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px;">⚙️ Hệ thống: <b>Đồng bộ Tab 1-6</b></span>
+            <span style="font-size: 13px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px;">⚙️ Hệ thống: <b>Đã vá lỗi DB và Cache</b></span>
             <a href="/" style="background: white; color: #0066cc; text-decoration: none; padding: 6px 15px; border-radius: 5px; font-weight: bold; font-size: 13px;">Đăng xuất</a>
         </div>
     </div>
 
     <div class="container">
-        <!-- THANH CHUYỂN TAB FLAT NẰM NGANG -->
         <div class="tab-menu">
-            <button class="tab-btn active" onclick="switchTab(event, 'tab-account')">🔑 3.1 Tài Khoản</button>
-            <button class="tab-btn" onclick="switchTab(event, 'tab-contract')">🤝 3.2 Hợp Đồng B2B</button>
+            <button class="tab-btn active" onclick="switchTab(event, 'tab-logistics')">🚚 3.5 Điều Phối & IoT Giám Sát</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-account')">🔑 3.1 Quản Lý Tài Khoản</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-contract')">🤝 3.2 Đối Tác B2B</button>
             <button class="tab-btn" onclick="switchTab(event, 'tab-crm')">👥 3.3 CRM Bệnh Nhân</button>
-            <button class="tab-btn" onclick="switchTab(event, 'tab-catalog')">🖊️ 3.4 Danh Mục Gói</button>
-            <button class="tab-btn" onclick="switchTab(event, 'tab-logistics')">🚚 3.5 Điều Phối & IoT</button>
-            <button class="tab-btn" onclick="switchTab(event, 'tab-config')">🌐 3.6 Cấu Hình Portal</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-catalog')">🖊️ 3.4 Gói Dịch Vụ</button>
         </div>
 
-        <!-- TAB 3.1: QUẢN LÝ TÀI KHOẢN -->
-        <div id="tab-account" class="tab-content active">
-            <div class="grid-2">
-                <div class="card">
-                    <h3>Cấp Tài Khoản Hệ Thống</h3>
-                    <form action="/api/admin/account/add" method="POST">
-                        <div class="form-group"><label>Tên đăng nhập</label><input type="text" name="username" required></div>
-                        <div class="form-group"><label>Mật khẩu mã hóa</label><input type="password" name="password" required></div>
-                        <div class="form-group"><label>Thuộc Đối tác / Phòng Lab</label><input type="text" name="partner" placeholder="Ví dụ: Medic Hòa Hảo" required></div>
-                        <div class="form-group">
-                            <label>Phân quyền truy cập</label>
-                            <select name="role">
-                                <option value="Bác sĩ / KTV Lấy mẫu">Bác sĩ / KTV Lấy mẫu</option>
-                                <option value="Admin Điều phối">Admin Điều phối</option>
-                                <option value="Đối tác B2B">Đối tác B2B</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn">Kích Hoạt Tài Khoản</button>
-                    </form>
-                </div>
-                <div class="card">
-                    <h3>Danh Sách Tài Khoản Phân Quyền</h3>
-                    <table>
-                        <thead><tr><th>ID</th><th>Username</th><th>Đối Tác</th><th>Quyền Hạn</th><th>Hành Động</th></tr></thead>
-                        <tbody>
-                            {% for acc in accounts %}
-                            <tr>
-                                <td>{{ acc.id }}</td>
-                                <td style="font-weight: bold;">{{ acc.username }}</td>
-                                <td>{{ acc.partner }}</td>
-                                <td><span class="badge badge-success">{{ acc.role }}</span></td>
-                                <td><a href="/api/admin/account/delete/{{ acc.id }}" class="btn btn-danger" style="padding: 4px 8px; font-size: 11px; text-decoration: none;">Xóa</a></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 3.2: HỢP ĐỒNG B2B -->
-        <div id="tab-contract" class="tab-content">
-            <div class="grid-2">
-                <div class="card">
-                    <h3>Ký Kết Hợp Đồng Đối Tác B2B</h3>
-                    <form action="/api/admin/contract/add" method="POST">
-                        <div class="form-group"><label>Mã Hợp Đồng</label><input type="text" name="hd_id" placeholder="HD-2026-XXXX" required></div>
-                        <div class="form-group"><label>Tên Đơn Vị Đối Tác</label><input type="text" name="partner_name" required></div>
-                        <div class="form-group"><label>% Chiết Khấu Định Mức</label><input type="number" step="0.1" name="discount" placeholder="Ví dụ: 15"></div>
-                        <div class="form-group"><label>Link Trả Kết Quả Thô (API Webhook)</label><input type="url" name="lab_result_url" placeholder="https://"></div>
-                        <div class="form-group"><label>Tài Khoản Lab Dùng Chung</label><input type="text" name="lab_account_shared"></div>
-                        <button type="submit" class="btn">Lưu Hợp Đồng</button>
-                    </form>
-                </div>
-                <div class="card">
-                    <h3>Danh Sách Liên Kết B2B Hiện Hành</h3>
-                    <table>
-                        <thead><tr><th>Mã HD</th><th>Tên Đối Tác</th><th>Chiết Khấu</th><th>Tài Khoản Dùng Chung</th></tr></thead>
-                        <tbody>
-                            {% for ct in contracts %}
-                            <tr>
-                                <td style="font-weight: bold; color: #0066cc;">{{ ct.id }}</td>
-                                <td>{{ ct.partner_name }}</td>
-                                <td style="font-weight: bold; color: #dc2626;">{{ ct.discount }}%</td>
-                                <td>{{ ct.lab_account_shared }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 3.3: CRM BỆNH NHÂN -->
-        <div id="tab-crm" class="tab-content">
-            <div class="card">
-                <h3>👥 Hồ Sơ CRM Bệnh Nhân & Lịch Sử Đặt Hẹn Hệ Thống</h3>
-                <table>
-                    <thead><tr><th>Mã SID</th><th>Họ Tên</th><th>Số Điện Thoại</th><th>Địa Chỉ</th><th>Phòng Lab Chỉ Định</th><th>Tổng Tiền</th><th>Chẩn Đoán Sơ Bộ AI</th></tr></thead>
-                    <tbody>
-                        {% for p in crm_patients %}
-                        <tr>
-                            <td style="font-weight: bold; color: #0066cc;">{{ p.sid }}</td>
-                            <td style="font-weight: bold;">{{ p.name }}</td>
-                            <td>{{ p.phone }}</td>
-                            <td>{{ p.address }}</td>
-                            <td><span class="badge badge-info">{{ p.chosen_lab }}</span></td>
-                            <td style="color: #059669; font-weight: bold;">{{ p.total_amount }}</td>
-                            <td style="font-style: italic; color: #475569;">{{ p.ai_suggested }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- TAB 3.4: DANH MỤC GÓI XÉT NGHIỆM -->
-        <div id="tab-catalog" class="tab-content">
-            <div class="grid-2">
-                <div class="card">
-                    <h3>Tạo/Sửa Gói Xét Nghiệm</h3>
-                    <form action="/api/admin/tests/add" method="POST">
-                        <div class="form-group"><label>Mã Xét Nghiệm</label><input type="text" name="code" placeholder="Ví dụ: XN01" required></div>
-                        <div class="form-group"><label>Tên Đầy Đủ Gói Dịch Vụ</label><input type="text" name="name" required></div>
-                        <div class="form-group"><label>Phân Hệ Chuyên Khoa</label><input type="text" name="category" placeholder="Huyết học, Sinh hóa..."></div>
-                        <div class="form-group"><label>Loại Ống Thu Mẫu (Màu sắc chống đông)</label><input type="text" name="tube_type" placeholder="Ống Tím EDTA, Ống Xanh..."></div>
-                        <div class="form-group"><label>Thời Gian Trả Kết Quả Dự Kiến</label><input type="text" name="duration" placeholder="Ví dụ: 3 giờ"></div>
-                        <div class="form-group"><label>Giá Niêm Yết Công Khai</label><input type="text" name="price" placeholder="Ví dụ: 250,000 đ"></div>
-                        <div class="form-group"><label>Ý Nghĩa Lâm Sàng & Chỉ Định</label><textarea name="function_desc" rows="3"></textarea></div>
-                        <button type="submit" class="btn">Lưu Gói Xét Nghiệm</button>
-                    </form>
-                </div>
-                <div class="card">
-                    <h3>Bảng Giá & Danh Mục Kỹ Thuật Niêm Yết</h3>
-                    <table>
-                        <thead><tr><th>Mã XN</th><th>Tên Gói Dịch Vụ</th><th>Phân Hệ</th><th>Ống Nghiệm</th><th>Thời Gian</th><th>Giá Niêm Yết</th><th>Hành Động</th></tr></thead>
-                        <tbody>
-                            {% for t in tests %}
-                            <tr>
-                                <td style="font-weight: bold; color: #059669;">{{ t.code }}</td>
-                                <td style="font-weight: bold;">{{ t.name }}</td>
-                                <td>{{ t.category }}</td>
-                                <td><span class="badge badge-warning">{{ t.tube_type }}</span></td>
-                                <td>{{ t.duration }}</td>
-                                <td style="color: #dc2626; font-weight: bold;">{{ t.price }}</td>
-                                <td><a href="/api/admin/tests/delete/{{ t.code }}" class="btn btn-danger" style="padding: 4px 8px; font-size: 11px; text-decoration: none;">Xóa</a></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 3.5: ĐIỀU PHỐI LOGISTICS & IOT GIÁM SÁT (BẢN CẬP NHẬT ĐỈNH CAO) -->
-        <div id="tab-logistics" class="tab-content">
+        <div id="tab-logistics" class="tab-content active">
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="margin: 0; color: #1e3a8a;">🚚 Điều Phối Tài Xế Nhận Ca & Giám Sát Định Vị IoT Thực Thời</h3>
-                    <span style="background: #10b981; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; animation: pulse 2s infinite;">
-                        ● IoT Live Connected
-                    </span>
+                    <h3 style="margin: 0; color: #1e3a8a;">🚚 Phân Hệ Điều Hành Vận Chuyển Mẫu & Bắn Lệnh Zalo API</h3>
+                    <span style="background: #10b981; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">● Live Connected</span>
                 </div>
                 <table>
                     <thead>
                         <tr>
-                            <th>Mã Chuyến</th>
-                            <th>Bệnh Nhân (SID)</th>
-                            <th>📍 Định Vị Lấy Mẫu</th>
-                            <th>📏 Ước Tính</th>
+                            <th>Mã Đơn</th>
+                            <th>Họ Tên Bệnh Nhân</th>
+                            <th>📍 Vị Trí Lấy Mẫu</th>
+                            <th>📏 Khoảng Cách</th>
                             <th>👤 Tài Xế Phụ Trách</th>
                             <th>🌡️ IoT Thùng Lạnh</th>
-                            <th>🔋 Pin Thiết Bị</th>
-                            <th>Trạng Thái Chuyến Đi</th>
-                            <th style="text-align: center;">Chỉ Định & Bắn Đơn Zalo</th>
+                            <th>🔋 Pin Máy</th>
+                            <th>Trạng Thái</th>
+                            <th style="text-align: center;">Chỉ Định Mới & Đẩy Tin</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -217,32 +75,25 @@
                         <tr>
                             <td style="font-weight: bold; color: #0066cc;">{{ p.sid }}</td>
                             <td><b>{{ p.name }}</b></td>
-                            <!-- TÍNH NĂNG 1: BẤM BUNG BẢN ĐỒ ĐỊNH VỊ GOOGLE MAPS -->
                             <td>
-                                <a href="https://www.google.com/maps/search/?api=1&query={{ p.address }}" target="_blank" style="color: #0066cc; text-decoration: none; font-weight: 600; display: inline-block;">
+                                <a href="https://www.google.com/maps/search/?api=1&query={{ p.address }}" target="_blank" style="color: #0066cc; text-decoration: none; font-weight: 600;">
                                     🗺️ {{ p.address }}
                                 </a>
                             </td>
-                            <!-- TÍNH NĂNG 2: TỰ ĐỘNG ƯỚC TÍNH SỐ KM -->
-                            <td>
-                                <span style="background: #fef3c7; color: #d97706; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px;">
-                                    ~6.5 km
-                                </span>
-                            </td>
+                            <td><span class="badge badge-warning">~6.5 km</span></td>
                             <td style="color: #059669; font-weight: bold;">👤 {{ p.driver_name }}</td>
                             <td style="color: #dc2626; font-weight: bold; font-size: 14px;">{{ p.temperature }}</td>
-                            <td style="color: #059669; font-weight: bold;">⚡ {{ p.battery }}</td>
+                            <td>⚡ {{ p.battery }}</td>
                             <td><span class="badge badge-info">{{ p.status }}</span></td>
-                            <!-- TÍNH NĂNG 3: FORM CHỌN TÀI XẾ VÀ NÚT BẮN ZALO OA API -->
-                            <td>
+                            <td style="text-align: center;">
                                 <form action="/api/admin/logistics/dispatch" method="POST" style="display: flex; gap: 5px; justify-content: center; margin: 0;">
                                     <input type="hidden" name="trip_id" value="{{ p.sid }}">
-                                    <select name="driver_name" style="padding: 5px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 12px; font-weight: 500;">
+                                    <select name="driver_name" style="padding: 5px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 12px;">
                                         <option value="Nguyễn Văn A">Nguyễn Văn A</option>
                                         <option value="Trần Văn B">Trần Văn B</option>
                                         <option value="Lê Văn C">Lê Văn C</option>
                                     </select>
-                                    <button type="submit" style="background: #0066cc; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+                                    <button type="submit" style="background: #0066cc; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px;">
                                         💬 Đẩy Zalo
                                     </button>
                                 </form>
@@ -254,30 +105,21 @@
             </div>
         </div>
 
-        <!-- TAB 3.6: CẤU HÌNH PORTAL -->
-        <div id="tab-config" class="tab-content">
-            <div class="card">
-                <h3>🌐 Cấu Hình Các Phân Hệ Kết Nối Trung Tâm (Portal Configuration)</h3>
-                <p style="color: #475569; font-size: 14px;">Hệ thống lõi đang thực hiện kết nối đồng bộ cơ sở dữ liệu chuỗi khối an toàn với máy chủ PostgreSQL của Render. Không tự ý thay đổi token môi trường khi chưa có sự giám sát của kỹ thuật viên.</p>
-                <div style="background: #f8fafc; padding: 15px; border-radius: 6px; border-left: 4px solid #0066cc; font-family: monospace; font-size: 12px; color: #334155;">
-                    STATUS_DB: CONNECTED TO POSTGRESQL PROD<br>
-                    WEBSITE_PORTAL: LIVE ON RENDER CLOUD
-                </div>
-            </div>
+        <div id="tab-account" class="tab-content">
+            <div class="grid-2"><div class="card"><h3>Cấp Tài Khoản</h3><form action="/api/admin/account/add" method="POST"><div class="form-group"><label>Username</label><input type="text" name="username" required></div><div class="form-group"><label>Password</label><input type="password" name="password" required></div><div class="form-group"><label>Đối tác</label><input type="text" name="partner" required></div><div class="form-group"><label>Quyền</label><select name="role"><option value="Admin Điều phối">Admin Điều phối</option></select></div><button type="submit" class="btn">Kích Hoạt</button></form></div><div class="card"><h3>Tài Khoản Hiện Hành</h3><table><thead><tr><th>Username</th><th>Đối Tác</th><th>Quyền</th></tr></thead><tbody>{% for acc in accounts %}<tr><td>{{ acc.username }}</td><td>{{ acc.partner }}</td><td>{{ acc.role }}</td></tr>{% endfor %}</tbody></table></div></div>
         </div>
+        <div id="tab-contract" class="tab-content"><div class="card"><h3>Hợp Đồng B2B</h3><table><thead><tr><th>Mã HD</th><th>Tên Đối Tác</th><th>Chiết Khấu</th></tr></thead><tbody>{% for ct in contracts %}<tr><td>{{ ct.id }}</td><td>{{ ct.partner_name }}</td><td>{{ ct.discount }}%</td></tr>{% endfor %}</tbody></table></div></div>
+        <div id="tab-crm" class="tab-content"><div class="card"><h3>Hồ Sơ CRM Bệnh Nhân</h3><table><thead><tr><th>Mã SID</th><th>Họ Tên</th><th>Địa Chỉ</th><th>Tổng Tiền</th></tr></thead><tbody>{% text %}{% for p in crm_patients %}<tr><td>{{ p.sid }}</td><td>{{ p.name }}</td><td>{{ p.address }}</td><td>{{ p.total_amount }}</td></tr>{% endfor %}{% endtext %}</tbody></table></div></div>
+        <div id="tab-catalog" class="tab-content"><div class="card"><h3>Danh Mục Gói</h3><table><thead><tr><th>Mã XN</th><th>Tên Gói</th><th>Giá Niêm Yết</th></tr></thead><tbody>{% for t in tests %}<tr><td>{{ t.code }}</td><td>{{ t.name }}</td><td>{{ t.price }}</td></tr>{% endfor %}</tbody></table></div></div>
     </div>
 
     <script>
         function switchTab(evt, tabId) {
             var i, tabcontent, tablinks;
             tabcontent = document.getElementsByClassName("tab-content");
-            for (i = 0; i < tabcontent.length; i++) {
-                tabcontent[i].classList.remove("active");
-            }
+            for (i = 0; i < tabcontent.length; i++) { tabcontent[i].classList.remove("active"); }
             tablinks = document.getElementsByClassName("tab-btn");
-            for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].classList.remove("active");
-            }
+            for (i = 0; i < tablinks.length; i++) { tablinks[i].classList.remove("active"); }
             document.getElementById(tabId).classList.add("active");
             evt.currentTarget.classList.add("active");
         }

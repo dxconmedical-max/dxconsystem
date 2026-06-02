@@ -94,6 +94,10 @@ def customer_register():
 
 
 # 2. BẢNG ĐIỀU PHỐI TRUNG TÂM (Trang Admin quản trị tối cao)
+# CẦU NỐI SỬA LỖI NÚT CHUYỂN HỆ THỐNG TRÊN GIAO DIỆN
+@app.route('/login')
+def redirect_to_admin():
+    return redirect('/admin')
 @app.route('/admin')
 def admin_portal():
     all_accounts = Account.query.order_by(Account.id.desc()).all()

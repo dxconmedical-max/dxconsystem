@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.secret_key = "dxcon_secret_key_master_system"
+app.secret_key = "dxcon_secret_key_master_system_v3"
 
 # CẤU HÌNH KẾT NỐI POSTGRESQL CHÍNH THỨC
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://dxcon_admin:qmaBoXCBLanF3b3jZwDnhFk5P719JZ8C@dpg-d8f6psl9j78s73fsl6qg-a/dxcon_prod'
@@ -14,7 +14,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # ==========================================
-# DATABASE MODELS (SỬA LỖI ĐỒNG BỘ KIỂU DỮ LIỆU STRING)
+# DATABASE MODELS (CẤU TRÚC CHUẨN ĐỒNG BỘ 100%)
 # ==========================================
 
 class Account(db.Model):
@@ -46,6 +46,7 @@ class Patient(db.Model):
     temperature = db.Column(db.String(50), default="22.5 °C")
     battery = db.Column(db.String(50), default="100%")
     status = db.Column(db.String(100), default="Chờ điều phối")
+    result_url = db.Column(db.String(500), default="https://dxcon.onrender.com/results/default.pdf")
 
 class TestCatalog(db.Model):
     __tablename__ = 'test_catalogs'
@@ -54,20 +55,19 @@ class TestCatalog(db.Model):
     category = db.Column(db.String(100))
     tube_type = db.Column(db.String(100))
     duration = db.Column(db.String(50))
-    price = db.Column(db.String(150), default="0") # Sửa thành String để tránh lỗi nhập "250,000 đ"
+    price = db.Column(db.String(150), default="0")
     function_desc = db.Column(db.Text)
 
 with app.app_context():
     db.create_all()
 
 # ==========================================
-# ĐIỀU HƯỚNG ROUTING VÀ TRAFFIC LOGIC
+# ROUTING & TRAFFIC CONTROL
 # ==========================================
 
 @app.route('/')
 def customer_portal():
-    available_tests = TestCatalog.query.order_by(TestCatalog.code.asc()).all()
-    return render_template('index.html', tests=available_tests)
+    return "<h3>Hệ thống DXCON đang hoạt động ổn định. Vui lòng truy cập /admin để vào cổng quản lý điều phối tối cao.</h3>"
 
 @app.route('/login')
 def bridge_login_to_admin():
@@ -75,6 +75,24 @@ def bridge_login_to_admin():
 
 @app.route('/admin')
 def admin_portal():
+    # Kiểm tra an toàn bảo vệ định tuyến: Nếu DB trống, tự động nạp bản ghi mẫu để tránh lỗi render giao diện
+    if not Patient.query.get("TRIP_2026"):
+        sample_patient = Patient(
+            sid="TRIP_2026", 
+            name="Nguyễn Văn Bệnh Nhân", 
+            phone="0901234567", 
+            address="Quận 1, TP. Hồ Chí Minh", 
+            chosen_lab="Lab Trung Tâm", 
+            total_amount="250,000đ", 
+            driver_name="Nguyễn Văn A", 
+            temperature="22.8 °C", 
+            battery="95%", 
+            status="Chờ điều phối",
+            result_url="https://dxcon.onrender.com/results/sid2026.pdf"
+        )
+        db.session.add(sample_patient)
+        db.session.commit()
+
     all_accounts = Account.query.order_by(Account.id.desc()).all()
     all_contracts = Contract.query.all()
     all_patients = Patient.query.order_by(Patient.sid.desc()).all()
@@ -86,7 +104,7 @@ def admin_portal():
                            crm_patients=all_patients,
                            tests=all_tests)
 
-# LOGIC ĐỂ BẮN TIN NHẮN ĐIỀU PHỐI QUA ZALO OA REAL-TIME
+# 🚚 TÁC VỤ 1: ĐỂ XẾ NHẬN CA VÀ BẮN ZALO CHO TÀI XẾ
 @app.route('/api/admin/logistics/dispatch', methods=['POST'])
 def dispatch_driver():
     sid = request.form.get('trip_id')
@@ -95,21 +113,16 @@ def dispatch_driver():
     patient = Patient.query.get(sid)
     if patient and driver_name:
         patient.driver_name = driver_name
-        patient.status = "Tài xế nhận ca - Đang di chuyển"
+        patient.status = "Đang lấy mẫu"
         db.session.commit()
         
-        # Danh bạ số điện thoại nhận đơn Zalo tài xế
-        driver_phones = {
-            "Nguyễn Văn A": "0901234567",  
-            "Trần Văn B": "0912345678",  
-            "Lê Văn C": "0923456789"   
-        }
+        # Cấu hình danh bạ Zalo Tài xế
+        driver_phones = {"Nguyễn Văn A": "0901234567", "Trần Văn B": "0912345678", "Lê Văn C": "0923456789"}
         driver_phone = driver_phones.get(driver_name, "")
         
-        ZALO_OA_ACCESS_TOKEN = "YOUR_ZALO_ACCESS_TOKEN_HERE" 
+        ZALO_OA_ACCESS_TOKEN = "YOUR_ZALO_ACCESS_TOKEN_HERE"
         zalo_url = "https://openapi.zalo.me/v3.0/oa/message/transaction"
         
-        headers = {"Content-Type": "application/json", "access_token": ZALO_OA_ACCESS_TOKEN}
         zalo_payload = {
             "recipient": {"phone": driver_phone},
             "message": {
@@ -120,7 +133,7 @@ def dispatch_driver():
                         "language": "VI",
                         "elements": [{
                             "title": f"LỆNH ĐIỀU PHỐI LẤY MẪU: {sid}",
-                            "subtitle": f"Khách hàng: {patient.name}\\n📍 Địa chỉ: {patient.address}\\n🌡️ Thùng lạnh: {patient.temperature}",
+                            "subtitle": f"Khách hàng: {patient.name}\\n📍 Địa chỉ: {patient.address}",
                             "image_url": "https://dxcon.onrender.com/static/logo.png"
                         }]
                     }
@@ -128,43 +141,58 @@ def dispatch_driver():
             }
         }
         try:
-            requests.post(zalo_url, json=zalo_payload, headers=headers, timeout=5)
-        except Exception as e:
-            print(f"Log chạy ngầm API Zalo: {str(e)}")
+            requests.post(zalo_url, json=zalo_payload, headers={"Content-Type": "application/json", "access_token": ZALO_OA_ACCESS_TOKEN}, timeout=5)
+        except:
+            pass
             
     return redirect(url_for('admin_portal'))
 
-@app.route('/api/admin/tests/add', methods=['POST'])
-def add_test_catalog():
-    code = request.form.get('code')
-    name = request.form.get('name')
-    category = request.form.get('category')
-    tube_type = request.form.get('tube_type')
-    duration = request.form.get('duration')
-    price = request.form.get('price', '0')
-    function_desc = request.form.get('function_desc')
+# 🏥 TÁC VỤ 2: GỬI KẾT QUẢ XÉT NGHIỆM TRỰC TIẾP CHO BỆNH NHÂN QUA ZALO
+@app.route('/api/admin/logistics/send-result', methods=['POST'])
+def send_patient_result():
+    sid = request.form.get('trip_id')
+    patient = Patient.query.get(sid)
     
-    if code and name:
-        test = TestCatalog.query.get(code)
-        if not test:
-            test = TestCatalog(code=code)
-            db.session.add(test)
-        test.name = name
-        test.category = category
-        test.tube_type = tube_type
-        test.duration = duration
-        test.price = str(price) # Sửa triệt để lỗi ép kiểu tại đây
-        test.function_desc = function_desc
+    if patient and patient.phone:
+        patient.status = "Đã có kết quả - Đã báo Zalo"
         db.session.commit()
+        
+        ZALO_OA_ACCESS_TOKEN = "YOUR_ZALO_ACCESS_TOKEN_HERE"
+        zalo_url = "https://openapi.zalo.me/v3.0/oa/message/transaction"
+        
+        zalo_payload = {
+            "recipient": {"phone": patient.phone},
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "transaction",
+                        "language": "VI",
+                        "elements": [{
+                            "title": f"THÔNG BÁO KẾT QUẢ XÉT NGHIỆM: {patient.name}",
+                            "subtitle": f"Mã tra cứu: {sid}\\nKết quả của bạn đã sẵn sàng. Vui lòng bấm vào liên kết để tải file báo cáo chi tiết.",
+                            "image_url": "https://dxcon.onrender.com/static/result_banner.png"
+                        }],
+                        "buttons": [{
+                            "title": "Xem Kết Quả Chi Tiết",
+                            "image_url": "https://dxcon.onrender.com/static/icon_pdf.png",
+                            "type": "oa.open.url",
+                            "payload": {"url": patient.result_url}
+                        }]
+                    }
+                }
+            }
+        }
+        try:
+            requests.post(zalo_url, json=zalo_payload, headers={"Content-Type": "application/json", "access_token": ZALO_OA_ACCESS_TOKEN}, timeout=5)
+        except:
+            pass
+            
     return redirect(url_for('admin_portal'))
 
-@app.route('/api/admin/tests/delete/<string:code>')
-def delete_test_catalog(code):
-    test = TestCatalog.query.get(code)
-    if test:
-        db.session.delete(test)
-        db.session.commit()
-    return redirect(url_for('admin_portal'))
+# ==========================================
+# SUPPORT API MODULES
+# ==========================================
 
 @app.route('/api/iot/update', methods=['POST'])
 def iot_update():
@@ -172,7 +200,6 @@ def iot_update():
     sid = data.get('sid')
     temp = data.get('temperature')
     batt = data.get('battery')
-    
     patient = Patient.query.get(sid)
     if patient:
         if temp: patient.temperature = f"{temp} °C"
@@ -181,75 +208,10 @@ def iot_update():
         return jsonify({"status": "success"}), 200
     return jsonify({"status": "error"}), 404
 
-@app.route('/api/customer/register', methods=['POST'])
-def customer_register():
-    new_sid = f"SID{random.randint(100000, 999999)}"
-    new_p = Patient(
-        sid=new_sid,
-        name=request.form.get('name'),
-        phone=request.form.get('phone'),
-        address=request.form.get('address'),
-        chosen_lab=request.form.get('chosen_lab'),
-        total_amount=request.form.get('total_amount', '0đ'),
-        status="Chờ điều phối"
-    )
-    db.session.add(new_p)
-    db.session.commit()
-    return f"Đăng ký thành công! Mã số là: {new_sid}."
-
-@app.route('/api/admin/account/add', methods=['POST'])
-def add_account():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    partner = request.form.get('partner')
-    role = request.form.get('role')
-    if username and password:
-        exists = Account.query.filter_by(username=username).first()
-        if not exists:
-            new_acc = Account(username=username, password=password, partner=partner, role=role)
-            db.session.add(new_acc)
-            db.session.commit()
-    return redirect(url_for('admin_portal'))
-
-@app.route('/api/admin/account/delete/<int:id>')
-def delete_account(id):
-    acc = Account.query.get(id)
-    if acc:
-        db.session.delete(acc)
-        db.session.commit()
-    return redirect(url_for('admin_portal'))
-
-@app.route('/api/admin/contract/add', methods=['POST'])
-def add_contract():
-    hd_id = request.form.get('hd_id')
-    partner_name = request.form.get('partner_name')
-    discount_str = request.form.get('discount', '0')
-    lab_result_url = request.form.get('lab_result_url')
-    lab_account_shared = request.form.get('lab_account_shared')
-    
-    if hd_id and partner_name:
-        contract = Contract.query.get(hd_id)
-        if not contract:
-            contract = Contract(id=hd_id)
-            db.session.add(contract)
-        contract.partner_name = partner_name
-        contract.discount = float(discount_str) if discount_str else 0.0
-        contract.lab_result_url = lab_result_url
-        contract.lab_account_shared = lab_account_shared
-        db.session.commit()
-    return redirect(url_for('admin_portal'))
-
 @app.route('/khoitaodatalab')
 def create_master_test_data():
-    # Xử lý dọn sạch dữ liệu rác xung đột cũ nếu có
     db.session.query(Patient).delete()
-    db.session.query(TestCatalog).delete()
-    
-    # Tạo lại dữ liệu sạch, đồng bộ 100% với định dạng chuỗi an toàn
-    xn01 = TestCatalog(code="XN01", name="Xét nghiệm Công thức máu", category="Huyết học", tube_type="Ống EDTA (Tím)", duration="2 giờ", price="250,000 đ", function_desc="Đánh giá tình trạng thiếu máu")
-    p01 = Patient(sid="TRIP_2026", name="Nguyễn Văn Bệnh Nhân", phone="0901234567", address="Quận 1, TP. Hồ Chí Minh", chosen_lab="Lab Trung Tâm", total_amount="250,000đ", driver_name="Nguyễn Văn A", temperature="22.8 °C", battery="95%", status="Chờ điều phối")
-    
-    db.session.add(xn01)
+    p01 = Patient(sid="TRIP_2026", name="Nguyễn Văn Bệnh Nhân", phone="0901234567", address="Quận 1, TP. Hồ Chí Minh", chosen_lab="Lab Trung Tâm", total_amount="250,000đ", driver_name="Nguyễn Văn A", temperature="22.8 °C", battery="95%", status="Chờ điều phối", result_url="https://dxcon.onrender.com/results/sid2026.pdf")
     db.session.add(p01)
     db.session.commit()
     return redirect(url_for('admin_portal'))

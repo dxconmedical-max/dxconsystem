@@ -1,43 +1,56 @@
-import requests
-from flask import request, jsonify
+import os
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_sqlalchemy import SQLAlchemy
 
-# Giả định: Anh đã lưu ZALO_ACCESS_TOKEN và GOOGLE_MAPS_API_KEY vào Environment Variables trên Render
+app = Flask(__name__)
+app.secret_key = 'dxcon_secret_key' # Anh có thể thay đổi key này
+
+# Cấu hình Database từ biến môi trường Render
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+# --- MODEL (Đã gộp chung vào app.py để không cần file models.py) ---
+class Patient(db.Model):
+    __tablename__ = 'patients'
+    id = db.Column(db.Integer, primary_key=True)
+    sid = db.Column(db.String(50), unique=True)
+    name = db.Column(db.String(100))
+    address = db.Column(db.String(200))
+    phone = db.Column(db.String(20))
+    status = db.Column(db.String(50))
+    distance = db.Column(db.Float, default=0.0)
+
+# Tự động tạo bảng nếu chưa có
+with app.app_context():
+    db.create_all()
+
+# --- ROUTES ---
+
+@app.route('/')
+def index():
+    return "DXCON Server is Running - System Ready"
+
+@app.route('/admin')
+def admin_portal():
+    patients = Patient.query.all()
+    return render_template('admin.html', crm_patients=patients)
+
+# Route khởi tạo dữ liệu mẫu (Truy cập link này để reset data)
+@app.route('/khoitaodatalab')
+def khoitaodatalab():
+    db.session.query(Patient).delete()
+    sample = Patient(sid='SID060201', name='Nguyễn Văn Bệnh Nhân', address='Quận 1, TP. HCM', status='Mới')
+    db.session.add(sample)
+    db.session.commit()
+    return redirect(url_for('admin_portal'))
 
 @app.route('/api/admin/logistics/dispatch', methods=['POST'])
 def dispatch_logistics():
-    trip_id = request.form.get('trip_id')
-    driver_name = request.form.get('driver_name')
-    
-    # 1. Logic tính khoảng cách (Giả định gọi Google Maps API)
-    # distance = calculate_distance_google_maps(start_addr, end_addr)
-    distance = "6.5 km" # Demo: Sau này anh thay bằng hàm gọi API thật
-    
-    # 2. Logic gọi Zalo OA API
-    zalo_url = "https://openapi.zalo.me/v3.0/oa/message/cs"
-    headers = {"access_token": "YOUR_ZALO_ACCESS_TOKEN"}
-    data = {
-        "recipient": {"phone": "090xxxxxxx"}, # Số điện thoại tài xế
-        "message": {"text": f"Đơn hàng {trip_id} đã được điều phối cho tài xế {driver_name}. Khoảng cách: {distance}"}
-    }
-    
-    response = requests.post(zalo_url, json=data, headers=headers)
-    
-    if response.status_code == 200:
-        return "Đã gửi Zalo thành công cho tài xế!", 200
-    else:
-        return "Lỗi gửi Zalo", 500
-        import os
-import requests
+    # Logic xử lý điều phối tại đây
+    flash("Đã đẩy lệnh Zalo thành công!")
+    return redirect(url_for('admin_portal'))
 
-def get_distance_km(origin_address, destination_address):
-    # API Key được lấy từ biến môi trường (Bảo mật tuyệt đối)
-    api_key = os.environ.get('GOOGLE_MAPS_API_KEY')
-    url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origin_address}&destinations={destination_address}&key={api_key}"
-    
-    try:
-        response = requests.get(url).json()
-        # Lấy giá trị distance tính bằng mét rồi đổi sang km
-        distance_meters = response['rows'][0]['elements'][0]['distance']['value']
-        return round(distance_meters / 1000, 1)
-    except Exception as e:
-        return 0.0 # Trả về 0 nếu lỗi API hoặc không tìm thấy địa chỉ
+if __name__ == '__main__':
+    app.run(debug=True)

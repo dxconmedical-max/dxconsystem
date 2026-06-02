@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DXCON - Phân Hệ Bác Sĩ & Phòng Khám</title>
+    <title>DXCON - Phân Hệ Bác Sĩ Chuyên Sâu</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
@@ -12,7 +12,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h2 class="fw-bold text-primary">🩺 PHÂN HỆ BÁC SĨ CHỈ ĐỊNH ĐỘC LẬP</h2>
-                <p class="text-muted">Tài khoản Bác sĩ: <b class="text-dark">{{ doctor_name }}</b> | Cơ sở: <b class="text-success">{{ clinic }}</b></p>
+                <p class="text-muted">Tài khoản: <b class="text-dark">{{ doctor_name }}</b> | Cơ sở: <b class="text-success">{{ clinic }}</b></p>
             </div>
             <a href="/logout" class="btn btn-danger fw-bold btn-sm">🔒 ĐĂNG XUẤT</a>
         </div>
@@ -31,15 +31,12 @@
         <div class="row g-4 mb-4">
             <div class="col-md-5">
                 <div class="card p-4 shadow-sm bg-white h-100">
-                    <h4 class="fw-bold text-info mb-3">🔬 Danh Mục Gói Có Sẵn</h4>
-                    <div class="list-group" style="max-height: 280px; overflow-y: auto;">
+                    <h4 class="fw-bold text-info mb-3">🔬 Gói Xét Nghiệm Hệ Thống</h4>
+                    <div class="list-group" style="max-height: 250px; overflow-y: auto;">
                         {% for t in tests %}
-                        <div class="list-group-item list-group-item-action">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1 fw-bold text-primary">{{ t.name }}</h6>
-                                <small class="text-danger fw-bold">{{ t.price }} đ</small>
-                            </div>
-                            <small class="text-muted">Mã: {{ t.code }} | Loại: {{ t.category }} | Ống: {{ t.tube_type }}</small>
+                        <div class="list-group-item list-group-item-action p-2">
+                            <h6 class="mb-1 fw-bold text-primary" style="font-size:14px;">{{ t.name }}</h6>
+                            <small class="text-danger fw-bold">{{ t.price }} đ</small> | <small class="text-muted">Mã: {{ t.code }}</small>
                         </div>
                         {% endfor %}
                     </div>
@@ -48,30 +45,38 @@
 
             <div class="col-md-7">
                 <div class="card p-4 shadow-sm bg-white h-100 border-top border-primary border-4">
-                    <h4 class="fw-bold text-primary mb-3">➕ Cho Chỉ Định Xét Nghiệm Mới</h4>
+                    <h4 class="fw-bold text-primary mb-3">➕ Cho Chỉ Định & Chỉ Định Phòng Lab Xử Lý Đích</h4>
                     <form action="/api/doctor/new_order" method="POST" class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Họ Tên Bệnh Nhân</label>
-                            <input type="text" class="form-control" name="patient_name" required>
+                            <input type="text" class="form-control form-control-sm" name="patient_name" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Số Điện Thoại</label>
-                            <input type="tel" class="form-control" name="patient_phone" required>
+                            <label class="form-label fw-bold">Số Điện Thại</label>
+                            <input type="tel" class="form-control form-control-sm" name="patient_phone" required>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label fw-bold">Thời gian hẹn thu mẫu</label>
-                            <input type="time" class="form-control" name="pickup_time_est" required>
-                        </div>
-                        <div class="col-md-8">
-                            <label class="form-label fw-bold">Chỉ định gói xét nghiệm dịch vụ</label>
-                            <select class="form-select" name="chosen_test">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Gói Xét Nghiệm</label>
+                            <select class="form-select form-select-sm" name="chosen_test">
                                 {% for t in tests %}
-                                <option value="{{ t.id }}">{{ t.name }} (Mã: {{ t.code }})</option>
+                                <option value="{{ t.id }}">{{ t.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-12 text-end">
-                            <button type="submit" class="btn btn-primary fw-bold btn-sm">🚀 PHÁT HÀNH CHỈ ĐỊNH ĐIỀU PHỐI</button>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-success">Gửi Đến Phòng Lab Liên Kết Nào?</label>
+                            <select class="form-select form-select-sm border-success bg-light" name="chosen_lab">
+                                {% for l in labs %}
+                                <option value="{{ l.partner_name }}">{{ l.partner_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Giờ lấy mẫu</label>
+                            <input type="time" class="form-control form-control-sm" name="pickup_time_est" required>
+                        </div>
+                        <div class="col-md-8 d-flex align-items-end justify-content-end">
+                            <button type="submit" class="btn btn-primary fw-bold btn-sm w-100">🚀 PHÁT HÀNH CHỈ ĐỊNH</button>
                         </div>
                     </form>
                 </div>
@@ -79,16 +84,17 @@
         </div>
 
         <div class="card p-4 shadow-sm bg-white mb-4">
-            <h4 class="fw-bold text-dark mb-3">📋 Quản Lý Bệnh Nhân Đăng Ký Tại Cơ Sở</h4>
+            <h4 class="fw-bold text-dark mb-3">📋 Quản Lý Bệnh Nhân Thuộc Cơ Sở Đăng Ký</h4>
             <div class="table-responsive">
-                <table class="table table-bordered table-hover align-middle">
+                <table class="table table-bordered table-hover align-middle table-sm">
                     <thead class="table-dark">
                         <tr>
                             <th>Mã SID</th>
                             <th>Tên Bệnh Nhân</th>
-                            <th>Liên Hệ</th>
-                            <th>Đề Xuất Hỗ Trợ Từ AI (WHO chuẩn)</th>
-                            <th>Thao Tác Chuyên Môn</th>
+                            <th>Lab Đích Phân Phối</th>
+                            <th>Mã Barcode Tra Cứu Lab</th>
+                            <th>🌐 Kết Quả Trực Tuyến Từ Lab</th>
+                            <th>Thao Tác Kê Toa</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -96,19 +102,37 @@
                         <tr>
                             <td class="fw-bold text-danger">{{ p.sid }}</td>
                             <td class="fw-bold">{{ p.name }}</td>
-                            <td>{{ p.phone }}</td>
-                            <td><small class="text-primary fw-bold d-block p-1 bg-light rounded border border-primary">{{ p.ai_suggested }}</small></td>
+                            <td><span class="badge bg-secondary">{{ p.chosen_lab }}</span></td>
+                            <td><code>{{ p.lab_patient_barcode }}</code></td>
                             <td>
-                                <button class="btn btn-sm btn-success fw-bold" onclick="openDoctorAction('{{ p.sid }}', '{{ p.name }}')">
+                                <button class="btn btn-sm btn-info text-white fw-bold py-0" onclick="viewLabPortal('{{ p.sid }}')">
+                                    🌐 Xem Trực Tiếp Kết Quả Lab
+                                </button>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-success fw-bold py-0" onclick="openDoctorAction('{{ p.sid }}', '{{ p.name }}')">
                                     📝 Thêm Lời Khuyên & Kê Toa
                                 </button>
                             </td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="5" class="text-center text-muted">Không tìm thấy bệnh nhân nào thuộc phạm vi quản lý hoặc trùng khớp từ khóa.</td></tr>
+                        <tr><td colspan="6" class="text-center text-muted">Không tìm thấy dữ liệu bệnh nhân nào.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <div class="card p-4 shadow-sm bg-white border-start border-info border-4 mb-4" id="labPortalZone" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h4 class="text-info fw-bold m-0">🌐 Hệ Thống Kết Nối Đồng Bộ Kết Quả Từ: <span id="labNameTitle" class="text-dark"></span></h4>
+                <button class="btn btn-sm btn-close" onclick="document.getElementById('labPortalZone').style.display='none'"></button>
+            </div>
+            <div class="p-2 bg-light rounded border mb-2" style="font-size:13px;">
+                💡 <b>Thông tin uỷ quyền kết nối:</b> Tài khoản đại lý: <code id="labAuthUser"></code> | Mã tra cứu bệnh nhân: <code id="labPatientCode"></code>
+            </div>
+            <div class="ratio ratio-21x9 border rounded shadow-sm bg-white" style="height: 480px;">
+                <iframe src="" id="labIframeTarget" title="Lab Result Portal" allowfullscreen></iframe>
             </div>
         </div>
 
@@ -116,36 +140,56 @@
             <h4 class="fw-bold text-success mb-3">Xử lý y tế chuyên sâu cho BN: <span id="patientLabel"></span></h4>
             <form action="/api/doctor/action" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="sid" id="patientSid">
-                
                 <div class="mb-3">
-                    <label class="form-label fw-bold text-danger">Upload Đơn Thuốc Đính Kèm (Định dạng File Ảnh / PDF / Tài liệu)</label>
-                    <input type="file" class="form-control border-danger" name="prescription_file" required>
+                    <label class="form-label fw-bold text-danger">Upload Đơn Thuốc Đính Kèm (Ảnh / PDF)</label>
+                    <input type="file" class="form-control form-control-sm" name="prescription_file" required>
                 </div>
-                
                 <div class="row g-3 mb-4">
                     <div class="col-md-8">
-                        <label class="form-label fw-bold">Lời dặn dò & Lời khuyên của bác sĩ</label>
-                        <input type="text" class="form-control" name="doctor_notes" placeholder="Chế độ ăn uống, sinh hoạt lành mạnh theo đơn..." required>
+                        <label class="form-label fw-bold">Lời dặn dò của bác sĩ</label>
+                        <input type="text" class="form-control form-control-sm" name="doctor_notes" required>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold text-danger">📅 Hẹn Lịch Tái Khám</label>
-                        <input type="date" class="form-control border-danger text-danger fw-bold" name="revisit_date" required>
+                        <input type="date" class="form-control form-control-sm border-danger text-danger fw-bold" name="revisit_date" required>
                     </div>
                 </div>
                 <div class="text-end">
-                    <button type="button" class="btn btn-sm btn-secondary me-2" onclick="document.getElementById('doctorFormZone').style.display='none'">Hủy</button>
-                    <button type="submit" class="btn btn-success fw-bold btn-sm">🚀 XÁC NHẬN ĐẨY DỮ LIỆU ĐẾN HỒ SƠ BỆNH NHÂN</button>
+                    <button type="submit" class="btn btn-success fw-bold btn-sm">🚀 HOÀN TẤT ĐẨY DỮ LIỆU ĐẾN HỒ SƠ</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
+        // HÀM GỌI AJAX ĐỂ LẤY LINK KẾT QUẢ VÀ NHÚNG HỆ THỐNG LAB VÀO IFRAME
+        function viewLabPortal(sid) {
+            fetch('/api/doctor/get_lab_frame/' + sid)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById("labPortalZone").style.display = "block";
+                        document.getElementById("labNameTitle").innerText = data.lab_name;
+                        document.getElementById("labAuthUser").innerText = data.account_shared;
+                        document.getElementById("labPatientCode").innerText = data.barcode;
+                        
+                        // Đưa đường link kết quả web của phòng Lab vào thẻ Iframe
+                        document.getElementById("labIframeTarget").src = data.embed_url;
+                        
+                        // Cuộn màn hình xuống vùng xem kết quả
+                        document.getElementById("labPortalZone").scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(err => alert("Lỗi kết nối đồng bộ API phòng Lab đối tác."));
+        }
+
         function openDoctorAction(sid, name) {
             document.getElementById("doctorFormZone").style.display = "block";
             document.getElementById("patientLabel").innerText = name + " [" + sid + "]";
             document.getElementById("patientSid").value = sid;
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            document.getElementById("doctorFormZone").scrollIntoView({ behavior: 'smooth' });
         }
     </script>
 </body>

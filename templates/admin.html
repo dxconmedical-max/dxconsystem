@@ -2,15 +2,12 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>DXCON - Hệ Thống Quản Trị Cao Cấp</title>
+    <title>DXCON - Hệ Thống Điều Phối Cao Cấp</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f4f6f9; color: #333; }
         .header { background: #0066cc; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .header h1 { margin: 0; font-size: 22px; }
         .container { padding: 25px; max-width: 1500px; margin: 0 auto; }
-        .tab-menu { display: flex; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px; gap: 10px; }
-        .tab-btn { padding: 10px 18px; border: none; background: none; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; border-radius: 6px; transition: all 0.2s; }
-        .tab-btn.active { background: #0066cc; color: white; }
         .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card h3 { margin-top: 0; margin-bottom: 15px; color: #1e3a8a; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
@@ -27,77 +24,71 @@
 <body>
 
     <div class="header">
-        <h1>🏥 DXCON MEDICAL MASTER PORTAL V5</h1>
-        <span style="font-size: 13px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px;">⚙️ Trạng thái: <b>Đã xử lý triệt để lỗi 500</b></span>
+        <h1>🏥 DXCON MEDICAL MASTER PORTAL V6</h1>
+        <span style="font-size: 13px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px;">Trạng thái: <b>Đồng bộ tối ưu môi trường</b></span>
     </div>
 
     <div class="container">
-        <div class="tab-menu">
-            <button class="tab-btn active">🚚 3.5 Điều Phối Logistics & Giám Sát IoT</button>
-        </div>
+        <div class="card">
+            <h3>🚚 Quản Lý Điều Phối Logistics & Hệ Thống Giám Sát IoT Thùng Lạnh</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã Chuyến</th>
+                        <th>Bệnh Nhân (SID)</th>
+                        <th>📍 Vị Trí Lấy Mẫu</th>
+                        <th>📏 Khoảng Cách</th>
+                        <th>🌡️ IoT Thùng Lạnh</th>
+                        <th>🔋 Pin Thiết Bị</th>
+                        <th>Trạng Thái</th>
+                        <th>👤 Chỉ Định Tài Xế Mới</th>
+                        <th style="text-align: center;">Tác Vụ Gửi Zalo API</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in crm_patients %}
+                    <tr>
+                        <td style="font-weight: bold; color: #0066cc;">{{ p.sid }}</td>
+                        <td><b>{{ p.name }}</b><br><small style="color:#64748b;">SĐT: {{ p.phone }}</small></td>
+                        <td>
+                            <a href="http://maps.google.com/?q={{ p.address }}" target="_blank" style="color: #0066cc; text-decoration: none; font-weight: bold;">
+                                🗺️ {{ p.address }}
+                            </a>
+                        </td>
+                        <td><span class="badge badge-warning">📍 ~6.5 km</span></td>
+                        <td style="color: #dc2626; font-weight: bold;">{{ p.temperature }}</td>
+                        <td>⚡ {{ p.battery }}</td>
+                        <td><span class="badge badge-info">{{ p.status }}</span></td>
+                        
+                        <td>
+                            <form id="form-driver-{{ p.sid }}" action="/api/admin/logistics/dispatch" method="POST" style="margin:0;">
+                                <input type="hidden" name="trip_id" value="{{ p.sid }}">
+                                <select name="driver_name" style="padding: 6px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 12px;">
+                                    <option value="Nguyễn Văn A" {% if p.driver_name == "Nguyễn Văn A" %}selected{% endif %}>Nguyễn Văn A</option>
+                                    <option value="Trần Văn B" {% if p.driver_name == "Trần Văn B" %}selected{% endif %}>Trần Văn B</option>
+                                    <option value="Lê Văn C" {% if p.driver_name == "Lê Văn C" %}selected{% endif %}>Lê Văn C</option>
+                                </select>
+                            </form>
+                        </td>
 
-        <div class="tab-content active">
-            <div class="card">
-                <h3>🚚 Phân Hệ Quản Lý Hộp Lạnh IoT & Điều Phối Lệnh Tác Vụ Đóng</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Mã Chuyến</th>
-                            <th>Bệnh Nhân (SID)</th>
-                            <th>📍 Vị Trí Lấy Mẫu</th>
-                            <th>📏 Tính Khoảng Cách</th>
-                            <th>🌡️ IoT Thùng Lạnh</th>
-                            <th>🔋 Pin Máy</th>
-                            <th>Trạng Thái</th>
-                            <th>👤 Chỉ Định Tài Xế Mới</th>
-                            <th style="text-align: center;">Tác Vụ Gửi Zalo API</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for p in crm_patients %}
-                        <tr>
-                            <td style="font-weight: bold; color: #0066cc;">{{ p.sid }}</td>
-                            <td><b>{{ p.name }}</b><br><small style="color:#64748b;">SĐT: {{ p.phone }}</small></td>
-                            <td>
-                                <a href="http://maps.google.com/?q={{ p.address }}" target="_blank" style="color: #0066cc; text-decoration: none; font-weight: bold;">
-                                    🗺️ {{ p.address }}
-                                </a>
-                            </td>
-                            <td><span class="badge badge-warning">📍 ~6.5 km</span></td>
-                            <td style="color: #dc2626; font-weight: bold;">{{ p.temperature }}</td>
-                            <td>⚡ {{ p.battery }}</td>
-                            <td><span class="badge badge-info">{{ p.status }}</span></td>
-                            
-                            <td>
-                                <form id="form-driver-{{ p.sid }}" action="/api/admin/logistics/dispatch" method="POST" style="margin:0;">
+                        <td>
+                            <div class="action-cell">
+                                <button type="submit" form="form-driver-{{ p.sid }}" class="btn-zalo-driver">
+                                    💬 Đẩy Zalo Xế
+                                </button>
+                                
+                                <form action="/api/admin/logistics/send-result" method="POST" style="margin:0;">
                                     <input type="hidden" name="trip_id" value="{{ p.sid }}">
-                                    <select name="driver_name" style="padding: 6px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 12px;">
-                                        <option value="Nguyễn Văn A" {% if p.driver_name == "Nguyễn Văn A" %}selected{% endif %}>Nguyễn Văn A</option>
-                                        <option value="Trần Văn B" {% if p.driver_name == "Trần Văn B" %}selected{% endif %}>Trần Văn B</option>
-                                        <option value="Lê Văn C" {% if p.driver_name == "Lê Văn C" %}selected{% endif %}>Lê Văn C</option>
-                                    </select>
-                                </form>
-                            </td>
-
-                            <td>
-                                <div class="action-cell">
-                                    <button type="submit" form="form-driver-{{ p.sid }}" class="btn-zalo-driver">
-                                        💬 Đẩy Zalo Xế
+                                    <button type="submit" class="btn-zalo-patient">
+                                        📄 Gửi KQ Khách
                                     </button>
-                                    
-                                    <form action="/api/admin/logistics/send-result" method="POST" style="margin:0;">
-                                        <input type="hidden" name="trip_id" value="{{ p.sid }}">
-                                        <button type="submit" class="btn-zalo-patient">
-                                            📄 Gửi KQ Khách
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 

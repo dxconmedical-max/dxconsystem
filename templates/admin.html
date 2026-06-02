@@ -1,180 +1,212 @@
-<!-- ========================================== -->
-<!-- KHU VỰC QUẢN LÝ CHỨC NĂNG BỔ TRỢ (TINH GỌN) -->
-<!-- ========================================== -->
-<div class="card shadow-sm border-0 rounded-3 mt-5">
-    <!-- Thanh điều hướng Tab -->
-    <div class="card-header bg-light border-bottom-0 p-0">
-        <ul class="nav nav-tabs nav-justified" id="adminFeatureTabs" role="tablist">
-            <li class="nav-item">
-                <button class="nav-link active fw-bold py-3 text-secondary" id="catalog-tab" data-bs-toggle="tab" data-bs-target="#catalog-pane" type="button" role="tab">
-                    🧪 3.4 Quản Lý Gói Xét Nghiệm
-                </button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link fw-bold py-3 text-secondary" id="logistics-tab" data-bs-toggle="tab" data-bs-target="#logistics-pane" type="button" role="tab">
-                    🚚 3.5 Điều Phối & Giám Sát IoT
-                </button>
-            </li>
-            <li class="nav-item">
-                <button class="nav-link fw-bold py-3 text-secondary" id="portal-tab" data-bs-toggle="tab" data-bs-target="#portal-pane" type="button" role="tab">
-                    🌐 3.6 Cấu Hình Portal Đối Tác
-                </button>
-            </li>
-        </ul>
-    </div>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DXCON - Hệ Thống Quản Trị Tối Cao</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { bg-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .nav-tabs .nav-link.active { background-color: #ffffff !important; border-bottom-color: transparent !important; color: #0d6efd !important; }
+        .card { border: none; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); }
+    </style>
+</head>
+<body class="bg-light">
 
-    <!-- Nội dung chi tiết từng Tab -->
-    <div class="card-body p-4 bg-white rounded-bottom-3">
-        <div class="tab-content" id="adminFeatureTabsContent">
-            
-            <!-- TAB 3.4: DANH MỤC XÉT NGHIỆM -->
-            <div class="tab-pane fade show active" id="catalog-pane" role="tabpanel" aria-labelledby="catalog-tab">
-                <div class="row g-4 mb-4">
-                    <!-- Form thêm thủ công -->
-                    <div class="col-lg-7 border-end pe-lg-4">
-                        <h6 class="fw-bold text-primary mb-3">➕ Thêm gói thủ công cá nhân</h6>
-                        <form action="#" method="POST" class="row g-2">
-                            <div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Mã XN"></div>
-                            <div class="col-md-8"><input type="text" class="form-control form-control-sm" placeholder="Tên xét nghiệm"></div>
-                            <div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Phân hệ / Loại XN"></div>
-                            <div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Loại ống mẫu"></div>
-                            <div class="col-md-4"><input type="text" class="form-control form-control-sm" value="2 giờ" placeholder="Thời gian"></div>
-                            <div class="col-md-6"><input type="number" class="form-control form-control-sm" placeholder="Giá tiền (VNĐ)"></div>
-                            <div class="col-md-6"><input type="text" class="form-control form-control-sm" placeholder="Chức năng ý nghĩa"></div>
-                            <div class="col-12 text-end mt-2">
-                                <button type="submit" class="btn btn-sm btn-primary px-3 fw-bold">Lưu gói xét nghiệm</button>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+                🏥 <span class="ms-2">DXCON MEDICAL SYSTEM</span>
+            </a>
+            <div class="d-flex align-items-center text-white">
+                <span class="me-3 small">Chào, <strong>Quản trị viên</strong></span>
+                <a href="/logout" class="btn btn-sm btn-light text-danger fw-bold">Đăng xuất</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold text-dark m-0">Bảng Điều Phối Trung Tâm</h3>
+                <p class="text-muted small m-0">Hệ thống quản lý dữ liệu CRM, Logistics IoT và Portal Phòng Lab</p>
+            </div>
+        </div>
+
+        <div class="card rounded-3 overflow-hidden">
+            <div class="card-header bg-white p-0 border-bottom">
+                <ul class="nav nav-tabs nav-justified" id="adminMainTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active fw-bold py-3" id="catalog-tab" data-bs-toggle="tab" data-bs-target="#catalog-pane" type="button" role="tab">
+                            🧪 3.4 Danh Mục Xét Nghiệm
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold py-3" id="logistics-tab" data-bs-toggle="tab" data-bs-target="#logistics-pane" type="button" role="tab">
+                            🚚 3.5 Điều Phối Tài Xế & IoT
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold py-3" id="portal-tab" data-bs-toggle="tab" data-bs-target="#portal-pane" type="button" role="tab">
+                            🌐 3.6 Cấu Hình Cổng Lab (Portal)
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card-body p-4 bg-white">
+                <div class="tab-content" id="adminMainTabsContent">
+                    
+                    <div class="tab-pane fade show active" id="catalog-pane" role="tabpanel" aria-labelledby="catalog-tab">
+                        <div class="row g-4 mb-4">
+                            <div class="col-lg-7 border-end pe-lg-4">
+                                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-plus-circle-fill"></i> Thêm gói thủ công cá nhân</h6>
+                                <form action="#" method="POST" class="row g-2">
+                                    <div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Mã XN"></div>
+                                    <div class="col-md-8"><input type="text" class="form-control form-control-sm" placeholder="Tên xét nghiệm"></div>
+                                    <div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Phân hệ / Loại"></div>
+                                    <div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Loại ống mẫu"></div>
+                                    <div class="col-md-4"><input type="text" class="form-control form-control-sm" value="2 giờ" placeholder="Thời gian"></div>
+                                    <div class="col-md-6"><input type="number" class="form-control form-control-sm" placeholder="Giá tiền (VNĐ)"></div>
+                                    <div class="col-md-6"><input type="text" class="form-control form-control-sm" placeholder="Chức năng ý nghĩa"></div>
+                                    <div class="col-12 text-end mt-2">
+                                        <button type="submit" class="btn btn-sm btn-primary px-3 fw-bold">Lưu gói xét nghiệm</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="col-lg-5 ps-lg-4">
+                                <h6 class="fw-bold text-success mb-2"><i class="bi bi-file-earmark-arrow-up-fill"></i> Upload hàng loạt (.csv / .txt)</h6>
+                                <p class="text-muted mb-3" style="font-size: 12px;">Cấu trúc dòng mẫu: <code>Mã, Tên, Loại XN, Loại Ống, Thời Gian, Giá Tiền, Chức năng</code></p>
+                                <div class="input-group input-group-sm">
+                                    <input type="file" class="form-control">
+                                    <button class="btn btn-success fw-bold" type="button">UPLOAD</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive border rounded shadow-sm">
+                            <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
+                                <thead class="table-light text-secondary">
+                                    <tr>
+                                        <th class="ps-3">Mã XN</th>
+                                        <th>Tên gói</th>
+                                        <th>Phân hệ</th>
+                                        <th>Loại ống mẫu</th>
+                                        <th>Thời gian</th>
+                                        <th>Giá cả</th>
+                                        <th>Chức năng tóm tắt</th>
+                                        <th class="text-center pe-3">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold ps-3">XN01</td>
+                                        <td class="fw-bold text-dark">Xét nghiệm Công thức máu</td>
+                                        <td>Huyết học</td>
+                                        <td><span class="badge bg-purple text-dark border">Ống EDTA (Tím)</span></td>
+                                        <td>2 giờ</td>
+                                        <td class="text-danger fw-bold">250,000 đ</td>
+                                        <td class="text-muted">Đánh giá tình trạng thiếu máu, nhiễm trùng cơ thể</td>
+                                        <td class="text-center pe-3">
+                                            <button class="btn btn-sm btn-link text-danger p-0 fw-bold text-decoration-none">❌ Xóa</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="logistics-pane" role="tabpanel" aria-labelledby="logistics-tab">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0">🚚 Trạng thái hộp lạnh vận chuyển thực thời (IoT Box)</h6>
+                            <span class="badge bg-info text-dark small"><i class="bi bi-arrow-clockwise"></i> Tự động cập nhật: Live</span>
+                        </div>
+                        <div class="table-responsive border rounded shadow-sm">
+                            <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
+                                <thead class="table-light text-secondary">
+                                    <tr>
+                                        <th class="ps-3">Mã Chuyến</th>
+                                        <th>Bệnh Nhân (SID)</th>
+                                        <th>Địa chỉ thu nhận mẫu</th>
+                                        <th>Giờ hẹn lấy</th>
+                                        <th>Tài xế phụ trách</th>
+                                        <th>Nhiệt độ IoT</th>
+                                        <th>Pin Thiết Bị</th>
+                                        <th>Chỉ định tài xế nhanh</th>
+                                        <th class="text-center pe-3">Lệnh Zalo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold text-primary ps-3">TRIP_2026</td>
+                                        <td><span class="badge bg-light text-dark border">SID060201</span></td>
+                                        <td>Quận 1, TP. Hồ Chí Minh</td>
+                                        <td>14:30</td>
+                                        <td class="fw-bold text-success"><i class="bi bi-person-check-fill"></i> Nguyễn Văn A</td>
+                                        <td class="fw-bold text-danger">22.8 °C</td>
+                                        <td class="text-success fw-bold">🔋 95%</td>
+                                        <td>
+                                            <select class="form-select form-select-sm" style="font-size: 12px; width: 140px;">
+                                                <option>Đổi tài xế...</option>
+                                            </select>
+                                        </td>
+                                        <td class="text-center pe-3">
+                                            <button class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold" style="font-size: 11px;">💬 Gửi lại Zalo</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="portal-pane" role="tabpanel" aria-labelledby="portal-tab">
+                        <div class="p-3 bg-light rounded-3 border border-start border-warning border-3 mb-4">
+                            <h6 class="fw-bold text-dark m-0">🌐 Thiết Lập Đồng Bộ Kết Quả Qua Cổng Tra Cứu Trực Tuyến</h6>
+                            <p class="text-muted small m-0 mt-1">Vui lòng điền đúng liên kết hệ thống tra cứu của phòng Lab đối tác để bác sĩ xem được trực tiếp kết quả thông qua khung Iframe an toàn.</p>
+                        </div>
+                        <form action="/api/admin/contract/add" method="POST">
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label text-secondary small fw-bold">Mã Hợp Đồng</label>
+                                    <input type="text" name="hd_id" class="form-control form-control-sm" placeholder="Ví dụ: HD_LAB_01" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-secondary small fw-bold">Tên đơn vị đối tác / Lab liên kết</label>
+                                    <input type="text" name="partner_name" class="form-control form-control-sm" placeholder="Tên phòng Lab..." required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label text-secondary small fw-bold">% Chiết khấu thương mại</label>
+                                    <input type="number" step="0.1" name="discount" class="form-control form-control-sm" placeholder="Ví dụ: 10.5">
+                                </div>
+                                <div class="col-md-7">
+                                    <label class="form-label text-secondary small fw-bold">Link kết quả Lab trực tuyến (Cổng Portal Tra Cứu)</label>
+                                    <input type="url" name="lab_result_url" class="form-control form-control-sm" placeholder="https://labportal.com/api/view_results">
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label text-secondary small fw-bold">Mã Agent (Uỷ quyền dùng chung)</label>
+                                    <input type="text" name="lab_account_shared" class="form-control form-control-sm" placeholder="Mã định danh hệ thống cấp">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-secondary small fw-bold">Đính kèm file hợp đồng gốc</label>
+                                    <input type="file" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-secondary small fw-bold">File danh mục xét nghiệm riêng biệt</label>
+                                    <input type="file" class="form-control form-control-sm">
+                                </div>
+                                <div class="col-12 text-end mt-4">
+                                    <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm"><i class="bi bi-floppy-fill"></i> Lưu Đối Tác & Cấu Hình Portal</button>
+                                </div>
                             </div>
                         </form>
                     </div>
-                    <!-- Form upload file -->
-                    <div class="col-lg-5 ps-lg-4">
-                        <h6 class="fw-bold text-success mb-2">📤 Upload hàng loạt (.csv / .txt)</h6>
-                        <p class="text-muted mb-3" style="font-size: 12px;">Cấu trúc dòng mẫu: <code>Mã, Tên, Loại XN, Loại Ống, Thời Gian, Giá Tiền, Chức năng</code></p>
-                        <div class="input-group input-group-sm">
-                            <input type="file" class="form-control">
-                            <button class="btn btn-success fw-bold" type="button">UPLOAD</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Bảng danh sách gói -->
-                <div class="table-responsive border rounded">
-                    <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
-                        <thead class="table-light text-secondary">
-                            <tr>
-                                <th>Mã XN</th>
-                                <th>Tên gói</th>
-                                <th>Phân hệ</th>
-                                <th>Loại ống mẫu</th>
-                                <th>Thời gian</th>
-                                <th>Giá cả</th>
-                                <th>Chức năng</th>
-                                <th class="text-center">Xóa</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Dữ liệu mẫu đổ ra ở đây -->
-                            <tr>
-                                <td class="fw-bold">XN01</td>
-                                <td>Xét nghiệm Công thức máu</td>
-                                <td>Huyết học</td>
-                                <td>Ống EDTA (Tím)</td>
-                                <td>2 giờ</td>
-                                <td class="text-danger fw-bold">250,000đ</td>
-                                <td>Đánh giá tình trạng thiếu máu, nhiễm trùng</td>
-                                <td class="text-center"><button class="btn btn-sm text-danger p-0"><i class="bi bi-trash"></i> ❌</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
+
                 </div>
             </div>
-
-            <!-- TAB 3.5: ĐIỀU PHỐI LOGISTICS & IOT -->
-            <div class="tab-pane fade" id="logistics-pane" role="tabpanel" aria-labelledby="logistics-tab">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="fw-bold text-info mb-0">🚚 Trạng thái hộp lạnh IoT & Giám sát tài xế thực thời</h6>
-                    <span class="badge bg-soft-info text-info border border-info px-2 py-1" style="font-size: 11px;">📡 Tự động làm mới sau 30s</span>
-                </div>
-                <div class="table-responsive border rounded">
-                    <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
-                        <thead class="table-light text-secondary">
-                            <tr>
-                                <th>Mã Chuyến</th>
-                                <th>Bệnh Nhân (SID)</th>
-                                <th>Địa chỉ thu nhận mẫu</th>
-                                <th>Giờ hẹn lấy</th>
-                                <th>Tài xế nhận ca</th>
-                                <th>Nhiệt độ IoT</th>
-                                <th>Pin Box</th>
-                                <th>Chỉ định tài xế</th>
-                                <th class="text-center">Lệnh Zalo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="fw-bold text-dark">TRIP_2026</td>
-                                <td><span class="badge bg-light text-dark">SID060201</span></td>
-                                <td>Quận 1, TP. Hồ Chí Minh</td>
-                                <td>14:30</td>
-                                <td><span class="text-success font-monospace">⚡ Nguyễn Văn A</span></td>
-                                <td class="fw-bold text-primary">22.8 °C</td>
-                                <td><span class="text-success">🔋 95%</span></td>
-                                <td>
-                                    <select class="form-select form-select-sm" style="font-size:12px;">
-                                        <option>Đổi tài xế...</option>
-                                    </select>
-                                </td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:11px;">💬 Re-send Zalo</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB 3.6: CẤU HÌNH PORTAL ĐỐI TÁC -->
-            <div class="tab-pane fade" id="portal-pane" role="tabpanel" aria-labelledby="portal-tab">
-                <h6 class="fw-bold text-warning mb-3">🌐 Cấu hình Cổng kết nối (Portal) & Tài khoản dùng chung cho Phòng Lab liên kết</h6>
-                <form action="/api/admin/contract/add" method="POST">
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-bold">Mã Hợp Đồng</label>
-                            <input type="text" name="hd_id" class="form-control form-control-sm" placeholder="Ví dụ: HD_LAB_01" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-secondary small fw-bold">Tên đơn vị đối tác / Lab liên kết</label>
-                            <input type="text" name="partner_name" class="form-control form-control-sm" placeholder="Tên phòng Lab đối tác..." required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label text-secondary small fw-bold">% Chiết khấu</label>
-                            <input type="number" step="0.1" name="discount" class="form-control form-control-sm" placeholder="% chiết khấu B2B">
-                        </div>
-                        <div class="col-md-7">
-                            <label class="form-label text-secondary small fw-bold">Link web kết quả Lab (Hỗ trợ Iframe Tra cứu)</label>
-                            <input type="url" name="lab_result_url" class="form-control form-control-sm" placeholder="https://labportal.com/search">
-                        </div>
-                        <div class="col-md-5">
-                            <label class="form-label text-secondary small fw-bold">Mã Agent uỷ quyền dùng chung</label>
-                            <input type="text" name="lab_account_shared" class="form-control form-control-sm" placeholder="Mã định danh hệ thống cấp">
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <label class="form-label text-secondary small fw-bold">Upload Hợp đồng file gốc</label>
-                            <input type="file" class="form-control form-control-sm">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-secondary small fw-bold">Tệp danh mục xét nghiệm</label>
-                            <input type="file" class="form-control form-control-sm">
-                        </div>
-                        
-                        <div class="col-12 text-end mt-4">
-                            <button type="submit" class="btn btn-warning text-dark fw-bold px-4">💾 Lưu Đối Tác & Cấu Hình Portal</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
         </div>
     </div>
-</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

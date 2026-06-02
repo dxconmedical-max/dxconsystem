@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>DXCON - Hệ Thống Quản Trị Tối Cao</title>
+    <title>DXCON - Hệ Thống Quản Trị Logistics</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: #f4f6f9; color: #333; }
         .header { background: #0066cc; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
@@ -22,21 +22,24 @@
         .badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; display: inline-block; }
         .badge-warning { background: #fef3c7; color: #d97706; }
         .badge-info { background: #e0f2fe; color: #0369a1; }
-        .btn-zalo-driver { background: #0066cc; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; }
-        .btn-zalo-patient { background: #10b981; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; }
-        .action-cell { display: flex; gap: 8px; align-items: center; justify-content: center; }
+        .btn-zalo-driver { background: #0066cc; color: white; border: none; padding: 7px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .btn-zalo-patient { background: #10b981; color: white; border: none; padding: 7px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .btn-zalo-driver:hover { background: #0052a3; }
+        .btn-zalo-patient:hover { background: #059669; }
+        .action-cell { display: flex; gap: 6px; align-items: center; justify-content: flex-start; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>🏥 DXCON MASTER LOGISTICS PORTAL</h1>
-        <span style="font-size: 13px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px;">⚙️ Trạng thái: <b>Đồng bộ hóa Zalo-Kép hoàn tất</b></span>
+        <h1>🏥 DXCON MEDICAL MASTER PORTAL</h1>
+        <span style="font-size: 13px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 20px;">⚙️ Trạng thái: <b>Đã vá lỗi Jinja2 'text' thành công</b></span>
     </div>
 
     <div class="container">
         <div class="tab-menu">
             <button class="tab-btn active" onclick="switchTab(event, 'tab-logistics')">🚚 3.5 Điều Phối & Hệ Thống IoT Giám Sát</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-crm')">👥 3.3 CRM Bệnh Nhân</button>
         </div>
 
         <div id="tab-logistics" class="tab-content active">
@@ -62,20 +65,19 @@
                             <td style="font-weight: bold; color: #0066cc;">{{ p.sid }}</td>
                             <td><b>{{ p.name }}</b><br><small style="color:#64748b;">SĐT: {{ p.phone }}</small></td>
                             <td>
-                                <a href="https://maps.google.com/?q={{ p.address }}" target="_blank" style="color: #0066cc; text-decoration: none; font-weight: bold;">
+                                <a href="http://maps.google.com/?q={{ p.address }}" target="_blank" style="color: #0066cc; text-decoration: none; font-weight: bold;">
                                     🗺️ {{ p.address }}
                                 </a>
                             </td>
-                            <td><span class="badge badge-warning">📍 6.5 km</span></td>
+                            <td><span class="badge badge-warning">📍 ~6.5 km</span></td>
                             <td style="color: #dc2626; font-weight: bold;">{{ p.temperature }}</td>
                             <td>⚡ {{ p.battery }}</td>
                             <td><span class="badge badge-info">{{ p.status }}</span></td>
                             
-                            <!-- BẮN LỆNH CHO TÀI XẾ -->
                             <td>
                                 <form id="form-driver-{{ p.sid }}" action="/api/admin/logistics/dispatch" method="POST" style="margin:0;">
                                     <input type="hidden" name="trip_id" value="{{ p.sid }}">
-                                    <select name="driver_name" style="padding: 5px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 12px;">
+                                    <select name="driver_name" style="padding: 6px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 12px; width: 100%;">
                                         <option value="Nguyễn Văn A" {% if p.driver_name == "Nguyễn Văn A" %}selected{% endif %}>Nguyễn Văn A</option>
                                         <option value="Trần Văn B" {% if p.driver_name == "Trần Văn B" %}selected{% endif %}>Trần Văn B</option>
                                         <option value="Lê Văn C" {% if p.driver_name == "Lê Văn C" %}selected{% endif %}>Lê Văn C</option>
@@ -83,7 +85,6 @@
                                 </form>
                             </td>
 
-                            <!-- Ô CHỨA NÚT TÁC VỤ KÉP CHUYÊN NGHIỆP -->
                             <td>
                                 <div class="action-cell">
                                     <button type="submit" form="form-driver-{{ p.sid }}" class="btn-zalo-driver">
@@ -98,6 +99,32 @@
                                     </form>
                                 </div>
                             </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-crm" class="tab-content">
+            <div class="card">
+                <h3>Hồ Sơ CRM Bệnh Nhân</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã SID</th>
+                            <th>Họ Tên</th>
+                            <th>Địa Chỉ</th>
+                            <th>Tổng Tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in crm_patients %}
+                        <tr>
+                            <td>{{ p.sid }}</td>
+                            <td><b>{{ p.name }}</b></td>
+                            <td>{{ p.address }}</td>
+                            <td style="font-weight: bold; color: #10b981;">{{ p.total_amount }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

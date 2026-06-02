@@ -2,16 +2,22 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 
+# 1. Khởi tạo App
 app = Flask(__name__)
-app.secret_key = 'dxcon_secret_key' # Anh có thể thay đổi key này
+app.secret_key = 'dxcon_secret_key'
 
-# Cấu hình Database từ biến môi trường Render
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+# 2. Cấu hình Database
+db_url = os.environ.get('DATABASE_URL')
+if db_url and db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+# 3. Khởi tạo DB với App
 db = SQLAlchemy(app)
 
-# --- MODEL (Đã gộp chung vào app.py để không cần file models.py) ---
+# 4. Định nghĩa Model (Gộp chung để tránh lỗi ModuleNotFound)
 class Patient(db.Model):
     __tablename__ = 'patients'
     id = db.Column(db.Integer, primary_key=True)
@@ -22,12 +28,11 @@ class Patient(db.Model):
     status = db.Column(db.String(50))
     distance = db.Column(db.Float, default=0.0)
 
-# Tự động tạo bảng nếu chưa có
+# Tạo bảng tự động
 with app.app_context():
     db.create_all()
 
-# --- ROUTES ---
-
+# 5. Các Route xử lý
 @app.route('/')
 def index():
     return "DXCON Server is Running - System Ready"
@@ -37,7 +42,6 @@ def admin_portal():
     patients = Patient.query.all()
     return render_template('admin.html', crm_patients=patients)
 
-# Route khởi tạo dữ liệu mẫu (Truy cập link này để reset data)
 @app.route('/khoitaodatalab')
 def khoitaodatalab():
     db.session.query(Patient).delete()
@@ -48,7 +52,6 @@ def khoitaodatalab():
 
 @app.route('/api/admin/logistics/dispatch', methods=['POST'])
 def dispatch_logistics():
-    # Logic xử lý điều phối tại đây
     flash("Đã đẩy lệnh Zalo thành công!")
     return redirect(url_for('admin_portal'))
 

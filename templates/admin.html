@@ -222,5 +222,22 @@
 
     </div>
 
-</body>
+</body><form action="/api/admin/contract/add" method="POST" enctype="multipart/form-data" class="row g-2 mb-4">
+    <div class="col-md-2"><input type="text" class="form-control form-control-sm" name="hd_id" placeholder="Mã HĐ" required></div>
+    <div class="col-md-3"><input type="text" class="form-control form-control-sm" name="partner_name" placeholder="Tên đơn vị đối tác / Lab liên kết" required></div>
+    <div class="col-md-1"><input type="number" class="form-control form-control-sm" name="discount" placeholder="% Chiết khấu"></div>
+    
+    <div class="col-md-3"><input type="url" class="form-control form-control-sm border-info" name="lab_result_url" placeholder="Link web kết quả Lab (https://...)"></div>
+    <div class="col-md-3"><input type="text" class="form-control form-control-sm border-info" name="lab_account_shared" placeholder="Mã Agent uỷ quyền dùng chung"></div>
+    
+    <div class="col-md-3">
+        <label class="form-label m-0 fw-bold" style="font-size:11px;">Upload Hợp đồng file gốc</label>
+        <input type="file" class="form-control form-control-sm" name="contract_file">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label m-0 fw-bold" style="font-size:11px;">Tệp danh mục xét nghiệm</label>
+        <input type="file" class="form-control form-control-sm" name="test_list_file">
+    </div>
+    <div class="col-md-6 d-flex align-items-end justify-content-end"><button type="submit" class="btn btn-warning fw-bold btn-sm px-4">Lưu Đối Tác & Cấu Hình Portal</button></div>
+</form>
 </html>

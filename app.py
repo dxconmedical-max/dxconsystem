@@ -154,7 +154,7 @@ def delete_contract(id):
 
 
 # 4. API MODULE 3.3: QUẢN LÝ DỮ LIỆU BỆNH NHÂN CRM (Thêm test / Xóa)
-@app.route('/api/admin/patient/add_test_data')
+@app.route('/testdata')
 def add_test_patient():
     # Tạo nhanh dữ liệu mẫu để chạy thử nghiệm hệ thống
     test_patient = Patient(

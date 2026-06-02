@@ -2,37 +2,56 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>DXCON Medical Master</title>
+    <title>DXCON - Hệ Thống Điều Phối Logistics</title>
     <style>
-        body { font-family: sans-serif; background: #f4f6f9; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f6f9; }
+        .header { background: #0066cc; color: white; padding: 15px 30px; }
+        .container { padding: 25px; max-width: 1500px; margin: 0 auto; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background: #f1f5f9; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
+        .btn-zalo { background: #0066cc; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-zalo-green { background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h3>Hồ Sơ CRM Bệnh Nhân</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Mã SID</th>
-                    <th>Họ Tên</th>
-                    <th>Địa Chỉ</th>
-                    <th>Tổng Tiền</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in crm_patients %}
-                <tr>
-                    <td>{{ p.sid }}</td>
-                    <td>{{ p.name }}</td>
-                    <td>{{ p.address }}</td>
-                    <td>{{ p.total_amount }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="header"><h1>🏥 DXCON MEDICAL MASTER PORTAL</h1></div>
+    <div class="container">
+        <div class="card">
+            <h3>🚚 Bảng Điều Phối Logistics & IoT</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã Chuyến</th>
+                        <th>Bệnh Nhân</th>
+                        <th>Địa Chỉ</th>
+                        <th>Trạng Thái</th>
+                        <th>Tác Vụ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in crm_patients %}
+                    <tr>
+                        <td><b>{{ p.sid }}</b></td>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.address }}</td>
+                        <td>{{ p.status }}</td>
+                        <td>
+                            <form action="/api/admin/logistics/dispatch" method="POST" style="display:inline;">
+                                <input type="hidden" name="trip_id" value="{{ p.sid }}">
+                                <button type="submit" class="btn-zalo">💬 Đẩy Zalo Xế</button>
+                            </form>
+                            <form action="/api/admin/logistics/send-result" method="POST" style="display:inline;">
+                                <input type="hidden" name="trip_id" value="{{ p.sid }}">
+                                <button type="submit" class="btn-zalo-green">📄 Gửi KQ</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </body>
 </html>

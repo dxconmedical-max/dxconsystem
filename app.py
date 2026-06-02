@@ -86,7 +86,7 @@ def admin_portal():
     all_patients = Patient.query.order_by(Patient.sid.desc()).all()
     all_tests = TestCatalog.query.order_by(TestCatalog.code.asc()).all()
     
-    return render_template('admin.html', 
+    return render_template('admin_master.html', 
                            accounts=all_accounts, 
                            contracts=all_contracts, 
                            crm_patients=all_patients,

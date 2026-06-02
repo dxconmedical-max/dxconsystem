@@ -1,243 +1,180 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DXCON - Hệ Thống Điều Hành Admin Master</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
+<!-- ========================================== -->
+<!-- KHU VỰC QUẢN LÝ CHỨC NĂNG BỔ TRỢ (TINH GỌN) -->
+<!-- ========================================== -->
+<div class="card shadow-sm border-0 rounded-3 mt-5">
+    <!-- Thanh điều hướng Tab -->
+    <div class="card-header bg-light border-bottom-0 p-0">
+        <ul class="nav nav-tabs nav-justified" id="adminFeatureTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active fw-bold py-3 text-secondary" id="catalog-tab" data-bs-toggle="tab" data-bs-target="#catalog-pane" type="button" role="tab">
+                    🧪 3.4 Quản Lý Gói Xét Nghiệm
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold py-3 text-secondary" id="logistics-tab" data-bs-toggle="tab" data-bs-target="#logistics-pane" type="button" role="tab">
+                    🚚 3.5 Điều Phối & Giám Sát IoT
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link fw-bold py-3 text-secondary" id="portal-tab" data-bs-toggle="tab" data-bs-target="#portal-pane" type="button" role="tab">
+                    🌐 3.6 Cấu Hình Portal Đối Tác
+                </button>
+            </li>
+        </ul>
+    </div>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-warning" href="/admin">🎛️ DXCON MASTER DASHBOARD</a>
-            <a href="/logout" class="btn btn-outline-danger btn-sm fw-bold">🔒 Đăng Xuất</a>
-        </div>
-    </nav>
-
-    <div class="container my-5">
-        
-        <div class="row g-3 mb-5 text-center">
-            <div class="col-md-6">
-                <div class="card p-3 bg-primary text-white shadow-sm border-0">
-                    <h5>📊 TỔNG SỐ LƯỢNG BỆNH NHÂN HỆ THỐNG (CRM)</h5>
-                    <h2 class="fw-bold">{{ stats.total_patients if stats.total_patients else 0 }} Người</h2>
+    <!-- Nội dung chi tiết từng Tab -->
+    <div class="card-body p-4 bg-white rounded-bottom-3">
+        <div class="tab-content" id="adminFeatureTabsContent">
+            
+            <!-- TAB 3.4: DANH MỤC XÉT NGHIỆM -->
+            <div class="tab-pane fade show active" id="catalog-pane" role="tabpanel" aria-labelledby="catalog-tab">
+                <div class="row g-4 mb-4">
+                    <!-- Form thêm thủ công -->
+                    <div class="col-lg-7 border-end pe-lg-4">
+                        <h6 class="fw-bold text-primary mb-3">➕ Thêm gói thủ công cá nhân</h6>
+                        <form action="#" method="POST" class="row g-2">
+                            <div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Mã XN"></div>
+                            <div class="col-md-8"><input type="text" class="form-control form-control-sm" placeholder="Tên xét nghiệm"></div>
+                            <div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Phân hệ / Loại XN"></div>
+                            <div class="col-md-4"><input type="text" class="form-control form-control-sm" placeholder="Loại ống mẫu"></div>
+                            <div class="col-md-4"><input type="text" class="form-control form-control-sm" value="2 giờ" placeholder="Thời gian"></div>
+                            <div class="col-md-6"><input type="number" class="form-control form-control-sm" placeholder="Giá tiền (VNĐ)"></div>
+                            <div class="col-md-6"><input type="text" class="form-control form-control-sm" placeholder="Chức năng ý nghĩa"></div>
+                            <div class="col-12 text-end mt-2">
+                                <button type="submit" class="btn btn-sm btn-primary px-3 fw-bold">Lưu gói xét nghiệm</button>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- Form upload file -->
+                    <div class="col-lg-5 ps-lg-4">
+                        <h6 class="fw-bold text-success mb-2">📤 Upload hàng loạt (.csv / .txt)</h6>
+                        <p class="text-muted mb-3" style="font-size: 12px;">Cấu trúc dòng mẫu: <code>Mã, Tên, Loại XN, Loại Ống, Thời Gian, Giá Tiền, Chức năng</code></p>
+                        <div class="input-group input-group-sm">
+                            <input type="file" class="form-control">
+                            <button class="btn btn-success fw-bold" type="button">UPLOAD</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bảng danh sách gói -->
+                <div class="table-responsive border rounded">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
+                        <thead class="table-light text-secondary">
+                            <tr>
+                                <th>Mã XN</th>
+                                <th>Tên gói</th>
+                                <th>Phân hệ</th>
+                                <th>Loại ống mẫu</th>
+                                <th>Thời gian</th>
+                                <th>Giá cả</th>
+                                <th>Chức năng</th>
+                                <th class="text-center">Xóa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dữ liệu mẫu đổ ra ở đây -->
+                            <tr>
+                                <td class="fw-bold">XN01</td>
+                                <td>Xét nghiệm Công thức máu</td>
+                                <td>Huyết học</td>
+                                <td>Ống EDTA (Tím)</td>
+                                <td>2 giờ</td>
+                                <td class="text-danger fw-bold">250,000đ</td>
+                                <td>Đánh giá tình trạng thiếu máu, nhiễm trùng</td>
+                                <td class="text-center"><button class="btn btn-sm text-danger p-0"><i class="bi bi-trash"></i> ❌</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card p-3 bg-success text-white shadow-sm border-0">
-                    <h5>💰 TỔNG SỐ TIỀN PHÁT SINH DỊCH VỤ XÉT NGHIỆM</h5>
-                    <h2 class="fw-bold">{{ stats.revenue if stats.revenue else 0 }} VNĐ</h2>
+
+            <!-- TAB 3.5: ĐIỀU PHỐI LOGISTICS & IOT -->
+            <div class="tab-pane fade" id="logistics-pane" role="tabpanel" aria-labelledby="logistics-tab">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-info mb-0">🚚 Trạng thái hộp lạnh IoT & Giám sát tài xế thực thời</h6>
+                    <span class="badge bg-soft-info text-info border border-info px-2 py-1" style="font-size: 11px;">📡 Tự động làm mới sau 30s</span>
+                </div>
+                <div class="table-responsive border rounded">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
+                        <thead class="table-light text-secondary">
+                            <tr>
+                                <th>Mã Chuyến</th>
+                                <th>Bệnh Nhân (SID)</th>
+                                <th>Địa chỉ thu nhận mẫu</th>
+                                <th>Giờ hẹn lấy</th>
+                                <th>Tài xế nhận ca</th>
+                                <th>Nhiệt độ IoT</th>
+                                <th>Pin Box</th>
+                                <th>Chỉ định tài xế</th>
+                                <th class="text-center">Lệnh Zalo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold text-dark">TRIP_2026</td>
+                                <td><span class="badge bg-light text-dark">SID060201</span></td>
+                                <td>Quận 1, TP. Hồ Chí Minh</td>
+                                <td>14:30</td>
+                                <td><span class="text-success font-monospace">⚡ Nguyễn Văn A</span></td>
+                                <td class="fw-bold text-primary">22.8 °C</td>
+                                <td><span class="text-success">🔋 95%</span></td>
+                                <td>
+                                    <select class="form-select form-select-sm" style="font-size:12px;">
+                                        <option>Đổi tài xế...</option>
+                                    </select>
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size:11px;">💬 Re-send Zalo</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </div>
 
-        <div class="card p-4 shadow-sm bg-white mb-5 border-start border-primary border-4">
-            <h4 class="text-primary fw-bold mb-3">3.1 Quản Lý Phân Quyền & Cấp Tài Khoản Người Dùng</h4>
-            <form action="/api/admin/account/add" method="POST" class="row g-2 mb-3">
-                <div class="col-md-3"><input type="text" class="form-control" name="username" placeholder="Tên đăng nhập" required></div>
-                <div class="col-md-3"><input type="password" class="form-control" name="password" placeholder="Mật khẩu bảo mật" required></div>
-                <div class="col-md-3"><input type="text" class="form-control" name="partner" placeholder="Cơ sở / Phòng khám quản lý" required></div>
-                <div class="col-md-2">
-                    <select class="form-select" name="role">
-                        <option value="Bác sĩ">Bác sĩ</option>
-                        <option value="Tài xế Logistics">Tài xế Logistics</option>
-                        <option value="Admin">Admin</option>
-                    </select>
-                </div>
-                <div class="col-md-1"><button type="submit" class="btn btn-primary w-100 fw-bold">Cấp</button></div>
-            </form>
-            <table class="table table-sm align-middle">
-                <thead><tr><th>Username</th><th>Đơn vị uỷ quyền</th><th>Vai trò nhóm</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
-                <tbody>
-                    {% for acc in accounts %}
-                    <tr>
-                        <td><b>{{ acc.username }}</b></td>
-                        <td>{{ acc.partner }}</td>
-                        <td><span class="badge bg-primary">{{ acc.role }}</span></td>
-                        <td><span class="badge bg-success">{{ acc.status }}</span></td>
-                        <td>
-                            {% if acc.username != 'admin' %}
-                            <a href="/api/admin/account/delete/{{ acc.id }}" class="btn btn-sm btn-outline-danger py-0" onclick="return confirm('Xóa tài khoản này?')">Xóa</a>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="card p-4 shadow-sm bg-white mb-5 border-start border-success border-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="text-success fw-bold m-0">3.2 Hệ Thống CRM Quản Lý Dữ Liệu Bệnh Nhân Tích Hợp AI</h4>
-                <form action="/admin" method="GET" class="d-flex gap-2">
-                    <input type="text" class="form-control form-control-sm" name="filter_clinic" value="{{ filter_clinic }}" placeholder="Nhập tên phòng khám để lọc...">
-                    <button type="submit" class="btn btn-sm btn-success">Filter</button>
-                    <a href="/admin" class="btn btn-sm btn-secondary">Reset</a>
+            <!-- TAB 3.6: CẤU HÌNH PORTAL ĐỐI TÁC -->
+            <div class="tab-pane fade" id="portal-pane" role="tabpanel" aria-labelledby="portal-tab">
+                <h6 class="fw-bold text-warning mb-3">🌐 Cấu hình Cổng kết nối (Portal) & Tài khoản dùng chung cho Phòng Lab liên kết</h6>
+                <form action="/api/admin/contract/add" method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label text-secondary small fw-bold">Mã Hợp Đồng</label>
+                            <input type="text" name="hd_id" class="form-control form-control-sm" placeholder="Ví dụ: HD_LAB_01" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">Tên đơn vị đối tác / Lab liên kết</label>
+                            <input type="text" name="partner_name" class="form-control form-control-sm" placeholder="Tên phòng Lab đối tác..." required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-secondary small fw-bold">% Chiết khấu</label>
+                            <input type="number" step="0.1" name="discount" class="form-control form-control-sm" placeholder="% chiết khấu B2B">
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label text-secondary small fw-bold">Link web kết quả Lab (Hỗ trợ Iframe Tra cứu)</label>
+                            <input type="url" name="lab_result_url" class="form-control form-control-sm" placeholder="https://labportal.com/search">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label text-secondary small fw-bold">Mã Agent uỷ quyền dùng chung</label>
+                            <input type="text" name="lab_account_shared" class="form-control form-control-sm" placeholder="Mã định danh hệ thống cấp">
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">Upload Hợp đồng file gốc</label>
+                            <input type="file" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-secondary small fw-bold">Tệp danh mục xét nghiệm</label>
+                            <input type="file" class="form-control form-control-sm">
+                        </div>
+                        
+                        <div class="col-12 text-end mt-4">
+                            <button type="submit" class="btn btn-warning text-dark fw-bold px-4">💾 Lưu Đối Tác & Cấu Hình Portal</button>
+                        </div>
+                    </div>
                 </form>
             </div>
-            <div class="table-responsive">
-                <table class="table table-bordered table-sm align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Mã SID</th><th>Tên bệnh nhân</th><th>Số điện thoại</th><th>Cơ sở sở hữu</th><th>Số tiền gói</th><th>Khuyến nghị chẩn đoán từ AI</th><th>Xóa</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for p in crm_patients %}
-                        <tr>
-                            <td class="fw-bold text-danger">{{ p.sid }}</td>
-                            <td><b>{{ p.name }}</b></td>
-                            <td>{{ p.phone }}</td>
-                            <td><span class="badge bg-dark">{{ p.clinic_owner }}</span></td>
-                            <td class="text-success fw-bold">{{ p.total_amount }} đ</td>
-                            <td><small class="text-primary fw-bold">{{ p.ai_suggested }}</small></td>
-                            <td><a href="/api/admin/patient/delete/{{ p.sid }}" class="btn btn-sm btn-danger py-0 px-1" onclick="return confirm('Xóa bệnh nhân?')">Xóa</a></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
 
-        <div class="card p-4 shadow-sm bg-white mb-5 border-start border-warning border-4">
-            <h4 class="text-warning fw-bold mb-3">3.3 Quản Lý Hồ Sơ Ký Kết Với Các Đối Tác B2B</h4>
-            <form action="/api/admin/contract/add" method="POST" enctype="multipart/form-data" class="row g-2 mb-4">
-                <div class="col-md-2"><input type="text" class="form-control" name="hd_id" placeholder="Mã HĐ" required></div>
-                <div class="col-md-3"><input type="text" class="form-control" name="partner_name" placeholder="Tên đơn vị đối tác" required></div>
-                <div class="col-md-2"><input type="number" class="form-control" name="discount" placeholder="% Chiết khấu"></div>
-                <div class="col-md-2">
-                    <label class="form-label m-0 fw-bold" style="font-size:11px;">Upload Hợp đồng</label>
-                    <input type="file" class="form-control form-control-sm" name="contract_file">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label m-0 fw-bold" style="font-size:11px;">Tệp test xét nghiệm</label>
-                    <input type="file" class="form-control form-control-sm" name="test_list_file">
-                </div>
-                <div class="col-md-1 d-flex align-items-end"><button type="submit" class="btn btn-warning w-100 fw-bold">Lưu</button></div>
-            </form>
-            <table class="table table-sm">
-                <thead><tr><th>Mã HĐ</th><th>Đơn vị đối tác</th><th>Mức chiết khấu</th><th>File hợp đồng gốc</th><th>File test đính kèm</th><th>Xóa</th></tr></thead>
-                <tbody>
-                    {% for c in contracts %}
-                    <tr>
-                        <td><code>{{ c.id }}</code></td>
-                        <td><b>{{ c.partner_name }}</b></td>
-                        <td class="text-danger fw-bold">{{ c.discount }}%</td>
-                        <td>{% if c.contract_file %}<a href="/uploads/{{ c.contract_file }}" target="_blank">📄 Xem File HĐ</a>{% else %}Chưa có{% endif %}</td>
-                        <td>{% if c.test_list_file %}<a href="/uploads/{{ c.test_list_file }}" target="_blank">🔬 Xem File Test</a>{% else %}Chưa có{% endif %}</td>
-                        <td><a href="/api/admin/contract/delete/{{ c.id }}" class="btn btn-sm btn-outline-danger py-0" onclick="return confirm('Xóa hợp đồng này?')">Xóa</a></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
         </div>
-
-        <div class="card p-4 shadow-sm bg-white mb-5 border-start border-danger border-4">
-            <h4 class="text-danger fw-bold mb-3">3.4 Quản Lý Danh Mục Gói Xét Nghiệm & Upload Hàng Loạt</h4>
-            <div class="row g-3 mb-4 p-3 bg-light rounded border">
-                <div class="col-md-7">
-                    <h5>Thêm gói thủ công cá nhân</h5>
-                    <form action="/api/admin/tests/add" method="POST" class="row g-2">
-                        <div class="col-md-3"><input type="text" class="form-control form-control-sm" name="code" placeholder="Mã XN" required></div>
-                        <div class="col-md-5"><input type="text" class="form-control form-control-sm" name="name" placeholder="Tên xét nghiệm" required></div>
-                        <div class="col-md-4"><input type="text" class="form-control form-control-sm" name="category" placeholder="Loại xét nghiệm"></div>
-                        <div class="col-md-3"><input type="text" class="form-control form-control-sm" name="tube_type" placeholder="Loại ống mẫu"></div>
-                        <div class="col-md-3"><input type="text" class="form-control form-control-sm" name="duration" placeholder="Thời gian XN" value="2 giờ"></div>
-                        <div class="col-md-3"><input type="number" class="form-control form-control-sm" name="price" placeholder="Giá tiền"></div>
-                        <div class="col-md-3"><input type="text" class="form-control form-control-sm" name="function_desc" placeholder="Chức năng"></div>
-                        <div class="col-12 text-end"><button type="submit" class="btn btn-sm btn-danger fw-bold">Lưu gói xét nghiệm</button></div>
-                    </form>
-                </div>
-                <div class="col-md-5 border-start">
-                    <h5>Upload hàng loạt theo form mẫu (.csv/.txt)</h5>
-                    <p style="font-size:12px;" class="text-muted">Cấu trúc dòng mẫu trong file: <br><code>Mã, Tên, Loại XN, Loại Ống, Thời Gian, Giá Tiền, Chức năng</code></p>
-                    <form action="/api/admin/tests/upload_bulk" method="POST" enctype="multipart/form-data" class="d-flex gap-2">
-                        <input type="file" class="form-control form-control-sm" name="bulk_file" required>
-                        <button type="submit" class="btn btn-sm btn-dark fw-bold">UPLOAD</button>
-                    </form>
-                </div>
-            </div>
-            <table class="table table-sm">
-                <thead><tr><th>Mã XN</th><th>Tên gói</th><th>Phân hệ</th><th>Loại ống mẫu</th><th>Thời gian</th><th>Giá cả</th><th>Chức năng</th><th>Xóa</th></tr></thead>
-                <tbody>
-                    {% for t in tests_catalog %}
-                    <tr>
-                        <td><code>{{ t.code }}</code></td>
-                        <td><b>{{ t.name }}</b></td>
-                        <td>{{ t.category }}</td>
-                        <td><span class="badge bg-secondary">{{ t.tube_type }}</span></td>
-                        <td>{{ t.duration }}</td>
-                        <td class="text-danger fw-bold">{{ t.price }} đ</td>
-                        <td><small>{{ t.function_desc }}</small></td>
-                        <td><a href="/api/admin/tests/delete/{{ t.id }}" class="btn btn-sm btn-outline-danger py-0" onclick="return confirm('Xóa gói?')">Xóa</a></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="card p-4 shadow-sm bg-white border-start border-info border-4">
-            <h4 class="text-info fw-bold mb-3">3.5 Điều Phối Tài Xế Logistics & Giám Sát Thiết Bị Mẫu IoT</h4>
-            <div class="table-responsive">
-                <table class="table table-hover table-bordered table-sm align-middle">
-                    <thead class="table-info">
-                        <tr>
-                            <th>Mã Chuyến</th><th>Bệnh Nhân (SID)</th><th>Địa chỉ thu nhận mẫu</th><th>Giờ hẹn lấy</th><th>Tài xế nhận ca</th><th>Nhiệt độ IoT</th><th>Pin Box</th><th>Chỉ định tài xế</th><th>Lệnh Zalo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for log in iot_logistics %}
-                        <tr>
-                            <td><b>{{ log.trip_id }}</b></td>
-                            <td>{{ log.name }} (<small class="text-danger fw-bold">{{ log.sid }}</small>)</td>
-                            <td><small>{{ log.address }}</small></td>
-                            <td><span class="badge bg-danger">{{ log.pickup_time_est }}</span></td>
-                            <td><span class="badge bg-dark">{{ log.driver_name }}</span></td>
-                            <td class="text-danger fw-bold">🌡️ {{ log.iot_temp }}</td>
-                            <td class="text-success fw-bold">🔋 {{ log.iot_battery }}</td>
-                            <td>
-                                <form action="/api/admin/logistics/dispatch" method="POST" class="d-flex gap-1">
-                                    <input type="hidden" name="trip_id" value="{{ log.trip_id }}">
-                                    <select class="form-select form-select-sm" name="driver_name" required style="font-size:12px;">
-                                        <option value="">-- Chọn tài xế --</option>
-                                        {% for d in drivers %}
-                                        <option value="{{ d.username }}">{{ d.username }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-info text-white py-0">Giao</button>
-                                </form>
-                            </td>
-                            <td>
-                                <a href="https://zalo.me/share?text={{ log.zalo_msg }}" target="_blank" class="btn btn-sm btn-success text-white fw-bold py-0" style="font-size:11px;">
-                                    💬 Đẩy Zalo Tài Xế
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
     </div>
-
-</body><form action="/api/admin/contract/add" method="POST" enctype="multipart/form-data" class="row g-2 mb-4">
-    <div class="col-md-2"><input type="text" class="form-control form-control-sm" name="hd_id" placeholder="Mã HĐ" required></div>
-    <div class="col-md-3"><input type="text" class="form-control form-control-sm" name="partner_name" placeholder="Tên đơn vị đối tác / Lab liên kết" required></div>
-    <div class="col-md-1"><input type="number" class="form-control form-control-sm" name="discount" placeholder="% Chiết khấu"></div>
-    
-    <div class="col-md-3"><input type="url" class="form-control form-control-sm border-info" name="lab_result_url" placeholder="Link web kết quả Lab (https://...)"></div>
-    <div class="col-md-3"><input type="text" class="form-control form-control-sm border-info" name="lab_account_shared" placeholder="Mã Agent uỷ quyền dùng chung"></div>
-    
-    <div class="col-md-3">
-        <label class="form-label m-0 fw-bold" style="font-size:11px;">Upload Hợp đồng file gốc</label>
-        <input type="file" class="form-control form-control-sm" name="contract_file">
-    </div>
-    <div class="col-md-3">
-        <label class="form-label m-0 fw-bold" style="font-size:11px;">Tệp danh mục xét nghiệm</label>
-        <input type="file" class="form-control form-control-sm" name="test_list_file">
-    </div>
-    <div class="col-md-6 d-flex align-items-end justify-content-end"><button type="submit" class="btn btn-warning fw-bold btn-sm px-4">Lưu Đối Tác & Cấu Hình Portal</button></div>
-</form>
-</html>
+</div>

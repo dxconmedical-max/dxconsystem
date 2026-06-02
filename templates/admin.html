@@ -1,28 +1,29 @@
-import requests
-from flask import request, jsonify
-
-# Giả định: Anh đã lưu ZALO_ACCESS_TOKEN và GOOGLE_MAPS_API_KEY vào Environment Variables trên Render
-
-@app.route('/api/admin/logistics/dispatch', methods=['POST'])
-def dispatch_logistics():
-    trip_id = request.form.get('trip_id')
-    driver_name = request.form.get('driver_name')
-    
-    # 1. Logic tính khoảng cách (Giả định gọi Google Maps API)
-    # distance = calculate_distance_google_maps(start_addr, end_addr)
-    distance = "6.5 km" # Demo: Sau này anh thay bằng hàm gọi API thật
-    
-    # 2. Logic gọi Zalo OA API
-    zalo_url = "https://openapi.zalo.me/v3.0/oa/message/cs"
-    headers = {"access_token": "YOUR_ZALO_ACCESS_TOKEN"}
-    data = {
-        "recipient": {"phone": "090xxxxxxx"}, # Số điện thoại tài xế
-        "message": {"text": f"Đơn hàng {trip_id} đã được điều phối cho tài xế {driver_name}. Khoảng cách: {distance}"}
-    }
-    
-    response = requests.post(zalo_url, json=data, headers=headers)
-    
-    if response.status_code == 200:
-        return "Đã gửi Zalo thành công cho tài xế!", 200
-    else:
-        return "Lỗi gửi Zalo", 500
+<div class="card" id="3-5">
+    <h3>3.5 Điều Phối Logistics & IoT</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Mã Chuyến</th><th>Bệnh Nhân</th><th>Tọa độ/Địa chỉ</th><th>Khoảng cách</th><th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in crm_patients %}
+            <tr>
+                <td>{{ p.sid }}</td>
+                <td>{{ p.name }}</td>
+                <td>{{ p.address }}</td>
+                <td><b>{{ p.distance_km }} km</b></td> <td>
+                    <form action="/api/admin/logistics/dispatch" method="POST">
+                        <input type="hidden" name="trip_id" value="{{ p.sid }}">
+                        <select name="driver_name">
+                            <option value="Tai_Xe_A">Tài xế A</option>
+                            <option value="Tai_Xe_B">Tài xế B</option>
+                        </select>
+                        <button type="submit" class="btn-zalo">💬 Đẩy Zalo</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

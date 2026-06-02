@@ -1,5 +1,6 @@
 import os
 import random
+import requests
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
@@ -50,20 +51,20 @@ class Patient(db.Model):
 
 class TestCatalog(db.Model):
     __tablename__ = 'test_catalogs'
-    code = db.Column(db.String(50), primary_key=True) # Mã XN
-    name = db.Column(db.String(200), nullable=False)   # Tên đầy đủ
-    category = db.Column(db.String(100))               # Phân hệ
-    tube_type = db.Column(db.String(100))              # Ống thu mẫu
-    duration = db.Column(db.String(50))                # Thời gian cần
-    price = db.Column(db.String(50), default="0")      # Bảng giá (Dạng chuỗi String an toàn)
-    function_desc = db.Column(db.Text)                 # Ý nghĩa
+    code = db.Column(db.String(50), primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    category = db.Column(db.String(100))
+    tube_type = db.Column(db.String(100))
+    duration = db.Column(db.String(50))
+    price = db.Column(db.String(50), default="0")
+    function_desc = db.Column(db.Text)
 
 with app.app_context():
     db.create_all()
 
 
 # ==========================================
-# ĐIỀU HƯỚNG CÁC TRANG (ROUTES & TRAFFIC)
+# ĐIỀU HƯỚNG CÁC TRANG & TRAFFIC LOGIC
 # ==========================================
 
 # 1. GIAO DIỆN KHÁCH HÀNG VÃNG LAI (Trang chủ)
@@ -93,10 +94,74 @@ def admin_portal():
 
 
 # ==========================================
-# CÁC BIẾN XỬ LÝ DỮ LIỆU ĐỒNG BỘ POSTGRES
+# BIẾN XỬ LÝ LOGIC LOGISTICS & ĐẨY SANG ZALO API THẬT
 # ==========================================
 
-# TAB 3.4: LƯU / THÊM / CẬP NHẬT GÓI XÉT NGHIỆM THỰC TẾ
+@app.route('/api/admin/logistics/dispatch', methods=['POST'])
+def dispatch_driver():
+    sid = request.form.get('trip_id')
+    driver_name = request.form.get('driver_name')
+    
+    patient = Patient.query.get(sid)
+    if patient and driver_name:
+        patient.driver_name = driver_name
+        patient.status = "Tài xế nhận ca - Đang di chuyển"
+        db.session.commit()
+        
+        # --------------------------------------------------------
+        # CẤU HÌNH GỬI TIN NHẮN REAL-TIME QUA ZALO OA THẬT
+        # --------------------------------------------------------
+        # Danh bạ số điện thoại đăng ký nhận đơn của Tài xế công ty
+        driver_phones = {
+            "Nguyễn Văn A": "0901234567",  # Anh thay bằng số điện thoại thật của tài xế A
+            "Trần Văn B": "0912345678",  # Anh thay bằng số điện thoại thật của tài xế B
+            "Lê Văn C": "0923456789"    # Anh thay bằng số điện thoại thật của tài xế C
+        }
+        
+        driver_phone = driver_phones.get(driver_name, "")
+        
+        # Token bản quyền của Zalo Open API bên anh
+        ZALO_OA_ACCESS_TOKEN = "YOUR_ZALO_ACCESS_TOKEN_HERE" 
+        zalo_url = "https://openapi.zalo.me/v3.0/oa/message/transaction"
+        
+        headers = {
+            "Content-Type": "application/json",
+            "access_token": ZALO_OA_ACCESS_TOKEN
+        }
+        
+        # Cấu trúc gói tin đẩy tự động sang Zalo tài xế
+        zalo_payload = {
+            "recipient": {"phone": driver_phone},
+            "message": {
+                "attachment": {
+                    "type": "template",
+                    "payload": {
+                        "template_type": "transaction",
+                        "language": "VI",
+                        "elements": [{
+                            "title": f"LỆNH ĐIỀU PHỐI LẤY MẪU: {sid}",
+                            "subtitle": f"Khách hàng: {patient.name}\n📍 Địa chỉ: {patient.address}\n🌡️ Nhiệt độ yêu cầu: {patient.temperature}",
+                            "image_url": "https://dxcon.onrender.com/static/logo.png"
+                        }]
+                    }
+                }
+            }
+        }
+        
+        try:
+            response = requests.post(zalo_url, json=zalo_payload, headers=headers, timeout=5)
+            print(f"🚀 [ZALO API] Kết quả gửi tin nhắn cho {driver_name}: {response.json()}")
+        except Exception as e:
+            print(f"❌ [ZALO API] Thất bại, đang lưu log chạy ngầm: {str(e)}")
+        # --------------------------------------------------------
+        
+    return redirect(url_for('admin_portal'))
+
+
+# ==========================================
+# CÁC BIẾN XỬ LÝ DỮ LIỆU ĐỒNG BỘ KHÁC
+# ==========================================
+
 @app.route('/api/admin/tests/add', methods=['POST'])
 def add_test_catalog():
     code = request.form.get('code')
@@ -112,14 +177,12 @@ def add_test_catalog():
         if not test:
             test = TestCatalog(code=code)
             db.session.add(test)
-            
         test.name = name
         test.category = category
         test.tube_type = tube_type
         test.duration = duration
         test.price = price
         test.function_desc = function_desc
-        
         db.session.commit()
     return redirect(url_for('admin_portal'))
 
@@ -131,33 +194,6 @@ def delete_test_catalog(code):
         db.session.commit()
     return redirect(url_for('admin_portal'))
 
-
-# TAB 3.5: ĐIỀU PHỐI TÀI XẾ & PHÁT LỆNH SANG ZALO
-@app.route('/api/admin/logistics/dispatch', methods=['POST'])
-def dispatch_driver():
-    sid = request.form.get('trip_id')
-    driver_name = request.form.get('driver_name')
-    
-    patient = Patient.query.get(sid)
-    if patient and driver_name:
-        patient.driver_name = driver_name
-        patient.status = "Tài xế nhận ca - Đang di chuyển"
-        db.session.commit()
-        
-        # LOG PHÁT LỆNH ZALO (WEBHOOK)
-        print(f"👉 [ZALO OA] Đã đẩy lệnh vận chuyển bệnh nhân {patient.name} sang Zalo tài xế {driver_name}")
-        
-    return redirect(url_for('admin_portal'))
-
-@app.route('/api/admin/logistics/resend_zalo/<string:sid>')
-def resend_zalo(sid):
-    patient = Patient.query.get(sid)
-    if patient:
-        print(f"🔄 [ZALO OA] Gửi lại lệnh điều phối thủ công cho mã: {sid}")
-    return redirect(url_for('admin_portal'))
-
-
-# CỔNG KẾT NỐI THIẾT BỊ IOT HỘP LẠNH (SAU NÀY KẾT NỐI PHẦN CỨNG)
 @app.route('/api/iot/update', methods=['POST'])
 def iot_update():
     data = request.json
@@ -170,11 +206,9 @@ def iot_update():
         if temp: patient.temperature = f"{temp} °C"
         if batt: patient.battery = f"{batt}%"
         db.session.commit()
-        return jsonify({"status": "success", "message": "IoT data updated"}), 200
+        return jsonify({"status": "success", "message": "IoT updated"}), 200
     return jsonify({"status": "error", "message": "Not found"}), 404
 
-
-# ĐĂNG KÝ BỆNH NHÂN VÃNG LAI TỪ TRANG NGOÀI 
 @app.route('/api/customer/register', methods=['POST'])
 def customer_register():
     new_sid = f"SID{random.randint(100000, 999999)}"
@@ -189,10 +223,8 @@ def customer_register():
     )
     db.session.add(new_p)
     db.session.commit()
-    return f"Đăng ký đặt lịch thành công! Mã số của bạn là: {new_sid}."
+    return f"Đăng ký thành công! Mã số là: {new_sid}."
 
-
-# TAB 3.1: QUẢN LÝ TÀI KHOẢN
 @app.route('/api/admin/account/add', methods=['POST'])
 def add_account():
     username = request.form.get('username')
@@ -215,8 +247,6 @@ def delete_account(id):
         db.session.commit()
     return redirect(url_for('admin_portal'))
 
-
-# TAB 3.2 & 3.6: QUẢN LÝ HỢP ĐỒNG ĐỐI TÁC
 @app.route('/api/admin/contract/add', methods=['POST'])
 def add_contract():
     hd_id = request.form.get('hd_id')
@@ -237,21 +267,16 @@ def add_contract():
         db.session.commit()
     return redirect(url_for('admin_portal'))
 
-
-# ĐƯỜNG DẪN KÍCH HOẠT HỆ THỐNG GỐC CHUẨN
 @app.route('/khoitaodatalab')
 def create_master_test_data():
-    # Khởi tạo gói mẫu dạng chuỗi String không bao giờ lỗi
     if not TestCatalog.query.get("XN01"):
-        xn01 = TestCatalog(code="XN01", name="Xét nghiệm Công thức máu", category="Huyết học", tube_type="Ống EDTA (Tím)", duration="2 giờ", price="250,000 đ", function_desc="Đánh giá tình trạng thiếu máu, nhiễm trùng")
+        xn01 = TestCatalog(code="XN01", name="Xét nghiệm Công thức máu", category="Huyết học", tube_type="Ống EDTA (Tím)", duration="2 giờ", price="250,000 đ", function_desc="Đánh giá tình trạng thiếu máu")
         db.session.add(xn01)
     if not Patient.query.get("TRIP_2026"):
-        p01 = Patient(sid="TRIP_2026", name="Nguyễn Văn Bệnh Nhân", phone="0901234567", address="Hồ Chí Minh", chosen_lab="Lab Trung Tâm", total_amount="250,000đ", driver_name="Chưa chỉ định", temperature="22.8 °C", battery="95%", status="Chờ điều phối")
+        p01 = Patient(sid="TRIP_2026", name="Nguyễn Văn Bệnh Nhân", phone="0901234567", address="Quận 1, TP. Hồ Chí Minh", chosen_lab="Lab Trung Tâm", total_amount="250,000đ", driver_name="Nguyễn Văn A", temperature="22.8 °C", battery="95%", status="Chờ điều phối")
         db.session.add(p01)
-        
     db.session.commit()
     return redirect(url_for('admin_portal'))
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

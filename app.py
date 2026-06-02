@@ -3,9 +3,10 @@ import random
 import requests
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 
 app = Flask(__name__)
-app.secret_key = "dxcon_secret_key_master_system_v3"
+app.secret_key = "dxcon_secret_key_master_system_v4"
 
 # CẤU HÌNH KẾT NỐI POSTGRESQL CHÍNH THỨC
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://dxcon_admin:qmaBoXCBLanF3b3jZwDnhFk5P719JZ8C@dpg-d8f6psl9j78s73fsl6qg-a/dxcon_prod'
@@ -14,7 +15,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # ==========================================
-# DATABASE MODELS (CẤU TRÚC CHUẨN ĐỒNG BỘ 100%)
+# DATABASE MODELS
 # ==========================================
 
 class Account(db.Model):
@@ -58,16 +59,29 @@ class TestCatalog(db.Model):
     price = db.Column(db.String(150), default="0")
     function_desc = db.Column(db.Text)
 
-with app.app_context():
-    db.create_all()
+# HÀM CHUYÊN GIA: TỰ ĐỘNG SỬA ĐỔI VÀ ĐỒNG BỘ CẤU TRÚC POSTGRESQL THỰC TẾ
+def auto_migrate_database():
+    with app.app_context():
+        db.create_all()
+        # Ép database bổ sung cột result_url vào bảng patients nếu chưa có (Tránh lỗi 500)
+        try:
+            db.session.execute(text("ALTER TABLE patients ADD COLUMN IF NOT EXISTS result_url VARCHAR(500) DEFAULT 'https://dxcon.onrender.com/results/default.pdf';"))
+            db.session.execute(text("ALTER TABLE test_catalogs ALTER COLUMN price TYPE VARCHAR(150);"))
+            db.session.commit()
+            print("--- ĐÃ TỰ ĐỘNG ĐỒNG BỘ CẤU TRÚC DATABASE THÀNH CÔNG ---")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Log migration: {str(e)}")
+
+auto_migrate_database()
 
 # ==========================================
-# ROUTING & TRAFFIC CONTROL
+# ROUTING CONTROLLER
 # ==========================================
 
 @app.route('/')
 def customer_portal():
-    return "<h3>Hệ thống DXCON đang hoạt động ổn định. Vui lòng truy cập /admin để vào cổng quản lý điều phối tối cao.</h3>"
+    return "<h3>Hệ thống DXCON đang hoạt động ổn định. Vui lòng truy cập /admin để vào cổng quản trị điều phối.</h3>"
 
 @app.route('/login')
 def bridge_login_to_admin():
@@ -75,36 +89,28 @@ def bridge_login_to_admin():
 
 @app.route('/admin')
 def admin_portal():
-    # Kiểm tra an toàn bảo vệ định tuyến: Nếu DB trống, tự động nạp bản ghi mẫu để tránh lỗi render giao diện
-    if not Patient.query.get("TRIP_2026"):
-        sample_patient = Patient(
-            sid="TRIP_2026", 
-            name="Nguyễn Văn Bệnh Nhân", 
-            phone="0901234567", 
-            address="Quận 1, TP. Hồ Chí Minh", 
-            chosen_lab="Lab Trung Tâm", 
-            total_amount="250,000đ", 
-            driver_name="Nguyễn Văn A", 
-            temperature="22.8 °C", 
-            battery="95%", 
-            status="Chờ điều phối",
-            result_url="https://dxcon.onrender.com/results/sid2026.pdf"
-        )
-        db.session.add(sample_patient)
-        db.session.commit()
+    try:
+        all_accounts = Account.query.order_by(Account.id.desc()).all()
+        all_contracts = Contract.query.all()
+        all_patients = Patient.query.order_by(Patient.sid.desc()).all()
+        all_tests = TestCatalog.query.order_by(TestCatalog.code.asc()).all()
+        
+        return render_template('admin.html', 
+                               accounts=all_accounts, 
+                               contracts=all_contracts, 
+                               crm_patients=all_patients,
+                               tests=all_tests)
+    except Exception as db_err:
+        # Nếu database dính lỗi dữ liệu cũ nặng, trả về giao diện cứu hộ để dọn sạch bằng 1 click
+        return f"""
+        <div style='padding:40px; font-family:sans-serif; text-align:center;'>
+            <h2 style='color:#dc2626;'>⚠️ Hệ thống phát hiện dữ liệu cũ xung đột cấu trúc bảng công nghệ!</h2>
+            <p>Vui lòng bấm vào nút dưới đây để Chuyên gia hệ thống dọn sạch bảng và tái cấu trúc tự động:</p>
+            <a href='/khoitaodatalab' style='background:#0066cc; color:white; padding:12px 25px; text-decoration:none; border-radius:5px; font-weight:bold; display:inline-block; margin-top:15px;'>👉 CLICK ĐỂ RESET & KHỞI TẠO LẠI HỆ THỐNG MỚI</a>
+            <br><br><small style='color:#64748b;'>Chi tiết lỗi hệ thống: {str(db_err)}</small>
+        </div>
+        """
 
-    all_accounts = Account.query.order_by(Account.id.desc()).all()
-    all_contracts = Contract.query.all()
-    all_patients = Patient.query.order_by(Patient.sid.desc()).all()
-    all_tests = TestCatalog.query.order_by(TestCatalog.code.asc()).all()
-    
-    return render_template('admin.html', 
-                           accounts=all_accounts, 
-                           contracts=all_contracts, 
-                           crm_patients=all_patients,
-                           tests=all_tests)
-
-# 🚚 TÁC VỤ 1: ĐỂ XẾ NHẬN CA VÀ BẮN ZALO CHO TÀI XẾ
 @app.route('/api/admin/logistics/dispatch', methods=['POST'])
 def dispatch_driver():
     sid = request.form.get('trip_id')
@@ -116,7 +122,6 @@ def dispatch_driver():
         patient.status = "Đang lấy mẫu"
         db.session.commit()
         
-        # Cấu hình danh bạ Zalo Tài xế
         driver_phones = {"Nguyễn Văn A": "0901234567", "Trần Văn B": "0912345678", "Lê Văn C": "0923456789"}
         driver_phone = driver_phones.get(driver_name, "")
         
@@ -132,7 +137,7 @@ def dispatch_driver():
                         "template_type": "transaction",
                         "language": "VI",
                         "elements": [{
-                            "title": f"LỆNH ĐIỀU PHỐI LẤY MẪU: {sid}",
+                            "title": f"LỆNH ĐIỀU PHỐI LẤY MẪU MỚI: {sid}",
                             "subtitle": f"Khách hàng: {patient.name}\\n📍 Địa chỉ: {patient.address}",
                             "image_url": "https://dxcon.onrender.com/static/logo.png"
                         }]
@@ -140,21 +145,18 @@ def dispatch_driver():
                 }
             }
         }
-        try:
-            requests.post(zalo_url, json=zalo_payload, headers={"Content-Type": "application/json", "access_token": ZALO_OA_ACCESS_TOKEN}, timeout=5)
-        except:
-            pass
+        try: requests.post(zalo_url, json=zalo_payload, headers={"Content-Type": "application/json", "access_token": ZALO_OA_ACCESS_TOKEN}, timeout=5)
+        except: pass
             
     return redirect(url_for('admin_portal'))
 
-# 🏥 TÁC VỤ 2: GỬI KẾT QUẢ XÉT NGHIỆM TRỰC TIẾP CHO BỆNH NHÂN QUA ZALO
 @app.route('/api/admin/logistics/send-result', methods=['POST'])
 def send_patient_result():
     sid = request.form.get('trip_id')
     patient = Patient.query.get(sid)
     
     if patient and patient.phone:
-        patient.status = "Đã có kết quả - Đã báo Zalo"
+        patient.status = "Đã báo kết quả qua Zalo"
         db.session.commit()
         
         ZALO_OA_ACCESS_TOKEN = "YOUR_ZALO_ACCESS_TOKEN_HERE"
@@ -170,12 +172,11 @@ def send_patient_result():
                         "language": "VI",
                         "elements": [{
                             "title": f"THÔNG BÁO KẾT QUẢ XÉT NGHIỆM: {patient.name}",
-                            "subtitle": f"Mã tra cứu: {sid}\\nKết quả của bạn đã sẵn sàng. Vui lòng bấm vào liên kết để tải file báo cáo chi tiết.",
+                            "subtitle": f"Mã kết quả: {sid}\\nKết quả xét nghiệm của bạn đã hoàn thành. Vui lòng bấm vào nút bên dưới để xem báo cáo chi tiết.",
                             "image_url": "https://dxcon.onrender.com/static/result_banner.png"
                         }],
                         "buttons": [{
                             "title": "Xem Kết Quả Chi Tiết",
-                            "image_url": "https://dxcon.onrender.com/static/icon_pdf.png",
                             "type": "oa.open.url",
                             "payload": {"url": patient.result_url}
                         }]
@@ -183,37 +184,42 @@ def send_patient_result():
                 }
             }
         }
-        try:
-            requests.post(zalo_url, json=zalo_payload, headers={"Content-Type": "application/json", "access_token": ZALO_OA_ACCESS_TOKEN}, timeout=5)
-        except:
-            pass
+        try: requests.post(zalo_url, json=zalo_payload, headers={"Content-Type": "application/json", "access_token": ZALO_OA_ACCESS_TOKEN}, timeout=5)
+        except: pass
             
     return redirect(url_for('admin_portal'))
 
-# ==========================================
-# SUPPORT API MODULES
-# ==========================================
-
-@app.route('/api/iot/update', methods=['POST'])
-def iot_update():
-    data = request.json
-    sid = data.get('sid')
-    temp = data.get('temperature')
-    batt = data.get('battery')
-    patient = Patient.query.get(sid)
-    if patient:
-        if temp: patient.temperature = f"{temp} °C"
-        if batt: patient.battery = f"{batt}%"
-        db.session.commit()
-        return jsonify({"status": "success"}), 200
-    return jsonify({"status": "error"}), 404
-
 @app.route('/khoitaodatalab')
 def create_master_test_data():
-    db.session.query(Patient).delete()
-    p01 = Patient(sid="TRIP_2026", name="Nguyễn Văn Bệnh Nhân", phone="0901234567", address="Quận 1, TP. Hồ Chí Minh", chosen_lab="Lab Trung Tâm", total_amount="250,000đ", driver_name="Nguyễn Văn A", temperature="22.8 °C", battery="95%", status="Chờ điều phối", result_url="https://dxcon.onrender.com/results/sid2026.pdf")
-    db.session.add(p01)
-    db.session.commit()
+    try:
+        # Xóa dữ liệu cũ dính cấu trúc lỗi
+        db.session.query(Patient).delete()
+        db.session.query(TestCatalog).delete()
+        db.session.query(Account).delete()
+        db.session.query(Contract).delete()
+        
+        # Khởi tạo bộ dữ liệu chuẩn mới tinh thích ứng 100%
+        p01 = Patient(
+            sid="TRIP_2026", 
+            name="Nguyễn Văn Bệnh Nhân mẫu", 
+            phone="0901234567", 
+            address="Quận 1, TP. Hồ Chí Minh", 
+            chosen_lab="Lab Trung Tâm", 
+            total_amount="250,000 đ", 
+            driver_name="Nguyễn Văn A", 
+            temperature="22.8 °C", 
+            battery="95%", 
+            status="Chờ điều phối",
+            result_url="https://dxcon.onrender.com/results/sid2026.pdf"
+        )
+        xn01 = TestCatalog(code="XN01", name="Xét nghiệm mẫu", category="Tổng quát", tube_type="Ống EDTA", duration="2 giờ", price="250,000 đ")
+        
+        db.session.add(p01)
+        db.session.add(xn01)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        return f"Lỗi khởi tạo lại: {str(e)}"
     return redirect(url_for('admin_portal'))
 
 if __name__ == '__main__':

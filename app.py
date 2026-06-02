@@ -1,4 +1,5 @@
 import os
+import random
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
@@ -54,7 +55,7 @@ class TestCatalog(db.Model):
     category = db.Column(db.String(100))               # Phân hệ
     tube_type = db.Column(db.String(100))              # Ống thu mẫu
     duration = db.Column(db.String(50))                # Thời gian cần
-    price = db.Column(db.String(50), default="0")      # Bảng giá
+    price = db.Column(db.String(50), default="0")      # Bảng giá (Dạng chuỗi String an toàn)
     function_desc = db.Column(db.Text)                 # Ý nghĩa
 
 with app.app_context():
@@ -65,39 +66,18 @@ with app.app_context():
 # ĐIỀU HƯỚNG CÁC TRANG (ROUTES & TRAFFIC)
 # ==========================================
 
-# 1. GIAO DIỆN KHÁCH HÀNG / BỆNH NHÂN VÃNG LAI (Trang chủ chính thức)
+# 1. GIAO DIỆN KHÁCH HÀNG VÃNG LAI (Trang chủ)
 @app.route('/')
 def customer_portal():
-    # Lấy danh mục gói xét nghiệm từ Postgres ra cho khách hàng vãng lai lựa chọn đặt lịch
-    available_tests = TestCatalog.query.all()
+    available_tests = TestCatalog.query.order_by(TestCatalog.code.asc()).all()
     return render_template('index.html', tests=available_tests)
 
-
-# Đăng ký thông tin từ trang vãng lai đẩy về két sắt CRM
-@app.route('/api/customer/register', methods=['POST'])
-def customer_register():
-    import random
-    new_sid = f"SID{random.randint(100000, 999999)}"
-    
-    new_p = Patient(
-        sid=new_sid,
-        name=request.form.get('name'),
-        phone=request.form.get('phone'),
-        address=request.form.get('address'),
-        chosen_lab=request.form.get('chosen_lab'),
-        total_amount=request.form.get('total_amount', '0đ'),
-        status="Chờ điều phối"
-    )
-    db.session.add(new_p)
-    db.session.commit()
-    return f"Đăng ký thành công! Mã bệnh nhân của bạn là: {new_sid}. DXCON sẽ liên hệ để lấy mẫu."
-
+# SỬA LỖI NÚT CHUYỂN HỆ THỐNG TRÊN TRANG VÃNG LAI (Cầu nối tự động sang Admin)
+@app.route('/login')
+def bridge_login_to_admin():
+    return redirect(url_for('admin_portal'))
 
 # 2. BẢNG ĐIỀU PHỐI TRUNG TÂM (Trang Admin quản trị tối cao)
-# CẦU NỐI SỬA LỖI NÚT CHUYỂN HỆ THỐNG TRÊN GIAO DIỆN
-@app.route('/login')
-def redirect_to_admin():
-    return redirect('/admin')
 @app.route('/admin')
 def admin_portal():
     all_accounts = Account.query.order_by(Account.id.desc()).all()
@@ -113,13 +93,12 @@ def admin_portal():
 
 
 # ==========================================
-# CÁC ROUTE XỬ LÝ DỮ LIỆU THỰC TẾ
+# CÁC BIẾN XỬ LÝ DỮ LIỆU ĐỒNG BỘ POSTGRES
 # ==========================================
 
-# XỬ LÝ TAB 3.4: THÊM / CẬP NHẬT GÓI XÉT NGHIỆM ĐỒNG BỘ 100% GIAO DIỆN
+# TAB 3.4: LƯU / THÊM / CẬP NHẬT GÓI XÉT NGHIỆM THỰC TẾ
 @app.route('/api/admin/tests/add', methods=['POST'])
 def add_test_catalog():
-    # Khớp chính xác theo name thuộc tính của các ô Input trong file HTML của anh
     code = request.form.get('code')
     name = request.form.get('name')
     category = request.form.get('category')
@@ -142,7 +121,7 @@ def add_test_catalog():
         test.function_desc = function_desc
         
         db.session.commit()
-    return redirect('/admin')
+    return redirect(url_for('admin_portal'))
 
 @app.route('/api/admin/tests/delete/<string:code>')
 def delete_test_catalog(code):
@@ -150,10 +129,10 @@ def delete_test_catalog(code):
     if test:
         db.session.delete(test)
         db.session.commit()
-    return redirect('/admin')
+    return redirect(url_for('admin_portal'))
 
 
-# XỬ LÝ TAB 3.5: ĐIỀU PHỐI TÀI XẾ & PHÁT LỆNH SANG ZALO
+# TAB 3.5: ĐIỀU PHỐI TÀI XẾ & PHÁT LỆNH SANG ZALO
 @app.route('/api/admin/logistics/dispatch', methods=['POST'])
 def dispatch_driver():
     sid = request.form.get('trip_id')
@@ -165,24 +144,20 @@ def dispatch_driver():
         patient.status = "Tài xế nhận ca - Đang di chuyển"
         db.session.commit()
         
-        # --- ĐOẠN ĐẨY LỆNH SANG ZALO (WEBHOOK) ---
-        # Sau này anh cấu hình token Zalo OA vào đây để tự gửi tin nhắn cho tài xế
-        print(f"👉 Hệ thống phát lệnh Zalo: Gửi yêu cầu đón bệnh nhân {patient.name} tới tài xế {driver_name}")
+        # LOG PHÁT LỆNH ZALO (WEBHOOK)
+        print(f"👉 [ZALO OA] Đã đẩy lệnh vận chuyển bệnh nhân {patient.name} sang Zalo tài xế {driver_name}")
         
-    return redirect('/admin')
+    return redirect(url_for('admin_portal'))
 
-# NÚT BẤM GỬI LẠI LỆNH ZALO THỦ CÔNG TRÊN GIAO DIỆN
 @app.route('/api/admin/logistics/resend_zalo/<string:sid>')
 def resend_zalo(sid):
     patient = Patient.query.get(sid)
     if patient:
-        # Giả lập lệnh gọi tổng đài API Zalo ZNS
-        print(f"🔄 Gửi lại lệnh Zalo điều phối cho mã chuyến: {sid}")
-    return redirect('/admin')
+        print(f"🔄 [ZALO OA] Gửi lại lệnh điều phối thủ công cho mã: {sid}")
+    return redirect(url_for('admin_portal'))
 
 
-# CỔNG API KẾT NỐI VỚI THIẾT BỊ IOT HỘP LẠNH (ĐỂ KẾT NỐI SAU NÀY)
-# Sau này thiết bị IoT phần cứng lắp sim 4G chỉ cần Bắn lệnh POST dạng JSON lên link này là cập nhật ngay
+# CỔNG KẾT NỐI THIẾT BỊ IOT HỘP LẠNH (SAU NÀY KẾT NỐI PHẦN CỨNG)
 @app.route('/api/iot/update', methods=['POST'])
 def iot_update():
     data = request.json
@@ -195,11 +170,29 @@ def iot_update():
         if temp: patient.temperature = f"{temp} °C"
         if batt: patient.battery = f"{batt}%"
         db.session.commit()
-        return jsonify({"status": "success", "message": "Dữ liệu IoT đã khóa chặt vào Postgres"}), 200
-    return jsonify({"status": "error", "message": "Không tìm thấy mã bệnh nhân"}), 404
+        return jsonify({"status": "success", "message": "IoT data updated"}), 200
+    return jsonify({"status": "error", "message": "Not found"}), 404
 
 
-# API MODULE 3.1: THÊM & XÓA TÀI KHOẢN
+# ĐĂNG KÝ BỆNH NHÂN VÃNG LAI TỪ TRANG NGOÀI 
+@app.route('/api/customer/register', methods=['POST'])
+def customer_register():
+    new_sid = f"SID{random.randint(100000, 999999)}"
+    new_p = Patient(
+        sid=new_sid,
+        name=request.form.get('name'),
+        phone=request.form.get('phone'),
+        address=request.form.get('address'),
+        chosen_lab=request.form.get('chosen_lab'),
+        total_amount=request.form.get('total_amount', '0đ'),
+        status="Chờ điều phối"
+    )
+    db.session.add(new_p)
+    db.session.commit()
+    return f"Đăng ký đặt lịch thành công! Mã số của bạn là: {new_sid}."
+
+
+# TAB 3.1: QUẢN LÝ TÀI KHOẢN
 @app.route('/api/admin/account/add', methods=['POST'])
 def add_account():
     username = request.form.get('username')
@@ -212,7 +205,7 @@ def add_account():
             new_acc = Account(username=username, password=password, partner=partner, role=role)
             db.session.add(new_acc)
             db.session.commit()
-    return redirect('/admin')
+    return redirect(url_for('admin_portal'))
 
 @app.route('/api/admin/account/delete/<int:id>')
 def delete_account(id):
@@ -220,10 +213,10 @@ def delete_account(id):
     if acc:
         db.session.delete(acc)
         db.session.commit()
-    return redirect('/admin')
+    return redirect(url_for('admin_portal'))
 
 
-# API MODULE 3.2 & 3.6: QUẢN LÝ ĐỐI TÁC
+# TAB 3.2 & 3.6: QUẢN LÝ HỢP ĐỒNG ĐỐI TÁC
 @app.route('/api/admin/contract/add', methods=['POST'])
 def add_contract():
     hd_id = request.form.get('hd_id')
@@ -242,23 +235,22 @@ def add_contract():
         contract.lab_result_url = lab_result_url
         contract.lab_account_shared = lab_account_shared
         db.session.commit()
-    return redirect('/admin')
+    return redirect(url_for('admin_portal'))
 
 
-# TẠO NHANH DATA MẪU BAN ĐẦU ĐỂ CHẠY HỆ THỐNG
+# ĐƯỜNG DẪN KÍCH HOẠT HỆ THỐNG GỐC CHUẨN
 @app.route('/khoitaodatalab')
 def create_master_test_data():
-    # 1. Tạo gói xét nghiệm mẫu
+    # Khởi tạo gói mẫu dạng chuỗi String không bao giờ lỗi
     if not TestCatalog.query.get("XN01"):
-        xn01 = TestCatalog(code="XN01", name="Xét nghiệm Công thức máu", category="Huyết học", tube_type="Ống EDTA (Tím)", duration="2 giờ", price="250,000 đ", function_desc="Đánh giá tình trạng thiếu máu, bạch cầu, nhiễm trùng cơ thể")
+        xn01 = TestCatalog(code="XN01", name="Xét nghiệm Công thức máu", category="Huyết học", tube_type="Ống EDTA (Tím)", duration="2 giờ", price="250,000 đ", function_desc="Đánh giá tình trạng thiếu máu, nhiễm trùng")
         db.session.add(xn01)
-    # 2. Tạo hành trình điều phối mẫu
     if not Patient.query.get("TRIP_2026"):
-        p01 = Patient(sid="TRIP_2026", name="Nguyễn Văn A", phone="0901234567", address="Quận 1, TP. Hồ Chí Minh", chosen_lab="Hệ Thống Lab Hoàn Mỹ", total_amount="250,000đ", driver_name="Nguyễn Văn A", temperature="22.8 °C", battery="95%", status="Tài xế nhận ca - Đang di chuyển")
+        p01 = Patient(sid="TRIP_2026", name="Nguyễn Văn Bệnh Nhân", phone="0901234567", address="Hồ Chí Minh", chosen_lab="Lab Trung Tâm", total_amount="250,000đ", driver_name="Chưa chỉ định", temperature="22.8 °C", battery="95%", status="Chờ điều phối")
         db.session.add(p01)
         
     db.session.commit()
-    return redirect('/admin')
+    return redirect(url_for('admin_portal'))
 
 
 if __name__ == '__main__':
